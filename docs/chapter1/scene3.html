@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ПЕРИМЕТР · Сцена 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+#game { width:100%; max-width:430px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; font-family:'Oswald',sans-serif; }
+#video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.grad-top { position:absolute; top:0; left:0; right:0; height:30%; background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent); pointer-events:none; }
+.grad-bot { position:absolute; bottom:0; left:0; right:0; height:60%; background:linear-gradient(to top,rgba(0,0,0,0.97),rgba(0,0,0,0) 65%); pointer-events:none; }
+#status { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; padding:14px 16px 0; z-index:10; font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.75); text-transform:uppercase; }
+#location { position:absolute; top:34px; left:16px; z-index:10; font-size:8px; letter-spacing:3px; color:rgba(200,200,200,0.4); text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+#location::before { content:''; width:12px; height:1px; background:rgba(192,0,10,0.8); box-shadow:0 0 4px rgba(192,0,10,0.5); }
+#voice-btn { position:absolute; top:10px; right:14px; z-index:20; background:rgba(10,3,3,0.7); border:1px solid rgba(140,0,0,0.3); color:rgba(192,0,10,0.8); font-size:16px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+#voice-btn.muted { color:rgba(100,100,100,0.5); }
+#subtitle { position:absolute; bottom:220px; left:14px; right:14px; text-align:center; z-index:10; opacity:0; transition:opacity 0.6s; }
+#subtitle.show { opacity:1; }
+.sub-speaker { font-size:8px; letter-spacing:4px; color:rgba(192,0,10,0.9); text-transform:uppercase; margin-bottom:7px; }
+.sub-text { font-size:15px; line-height:1.7; font-weight:300; color:rgba(235,222,210,0.97); text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1); }
+#choices { position:absolute; bottom:18px; left:12px; right:12px; z-index:20; display:flex; flex-direction:column; gap:8px; opacity:0; transform:translateY(10px); transition:opacity 0.5s,transform 0.5s; pointer-events:none; }
+#choices.show { opacity:1; transform:translateY(0); pointer-events:all; }
+.choice-btn { width:100%; background:rgba(5,1,1,0.87); border:1px solid rgba(192,0,10,0.35); color:rgba(215,195,185,0.88); font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:12px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:all 0.18s; text-align:left; line-height:1.4; }
+.choice-btn::before { content:'▸'; color:rgba(192,0,10,0.9); font-size:9px; flex-shrink:0; }
+.choice-btn:active { background:rgba(60,5,5,0.92); border-color:rgba(192,0,10,0.8); color:#fff; }
+.choice-btn.chosen { border-color:rgba(192,0,10,0.9); background:rgba(50,5,5,0.92); color:#fff; }
+.choice-btn.faded { opacity:0.25; pointer-events:none; }
+#result { position:absolute; inset:0; background:rgba(4,1,1,0.94); z-index:40; display:none; flex-direction:column; justify-content:center; padding:28px 22px; gap:18px; }
+#result.show { display:flex; animation:fadeIn 0.4s ease; }
+.res-label { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.9); text-transform:uppercase; }
+.res-line { width:36px; height:1px; background:rgba(192,0,10,0.8); }
+.res-txt { font-size:15px; line-height:1.85; font-weight:300; font-style:italic; color:rgba(225,210,200,0.95); }
+#continue-btn { margin-top:8px; background:transparent; border:1px solid rgba(192,0,10,0.5); color:rgba(192,0,10,0.9); font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:5px; padding:13px; cursor:pointer; text-transform:uppercase; }
+#continue-btn:active { background:rgba(192,0,10,0.8); color:#000; }
+#ending { position:absolute; inset:0; background:#000; z-index:80; display:none; flex-direction:column; align-items:center; justify-content:center; padding:36px 26px; text-align:center; gap:16px; }
+#ending.show { display:flex; animation:fadeIn 0.8s ease; }
+.end-glyph { font-size:34px; color:rgba(192,0,10,0.9); text-shadow:0 0 30px rgba(192,0,10,0.8); }
+.end-ch { font-size:9px; letter-spacing:8px; color:rgba(107,0,5,0.8); text-transform:uppercase; }
+.end-title { font-family:'Russo One',sans-serif; font-size:28px; letter-spacing:6px; color:rgba(192,0,10,0.9); }
+.end-line { width:44px; height:1px; background:rgba(107,0,5,0.6); }
+.end-txt { font-size:14px; line-height:1.85; font-weight:300; color:rgba(120,100,90,0.9); max-width:300px; }
+.end-stat { font-size:9px; letter-spacing:2px; color:rgba(107,0,5,0.8); text-transform:uppercase; padding:10px 16px; white-space:pre-line; border:1px solid rgba(107,0,5,0.35); line-height:1.8; }
+#menu-btn { background:transparent; border:1px solid rgba(192,0,10,0.6); color:rgba(192,0,10,0.9); font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:5px; padding:13px 34px; cursor:pointer; text-transform:uppercase; margin-top:6px; }
+#menu-btn:active { background:rgba(192,0,10,0.8); color:#000; }
+#ver { position:absolute; bottom:6px; right:12px; z-index:10; font-size:7px; letter-spacing:2px; color:rgba(70,30,30,0.4); text-transform:uppercase; }
+#trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
+#trans.on { opacity:1; pointer-events:all; }
+@keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="trans"></div>
+  <video id="video" muted loop playsinline webkit-playsinline src="../artifacts/perimetr/public/Video/ch1_s3.mp4" preload="auto"></video>
+  <div class="grad-top"></div>
+  <div class="grad-bot"></div>
+  <div id="status"><span>Артур Северов</span><span>Офицер · Сектор 7</span></div>
+  <div id="location">Кабинет генерала Морозова</div>
+  <button id="voice-btn" onclick="toggleVoice()">🔊</button>
+  <div id="subtitle">
+    <div class="sub-speaker">Генерал Морозов</div>
+    <div class="sub-text">Климов. Техник третьего уровня. Исчез шесть часов назад. Найди его, Северов. Живым. Это всё что тебе нужно знать.</div>
+  </div>
+  <div id="choices">
+    <button class="choice-btn" onclick="choose('A')">«Так точно, товарищ генерал.»</button>
+    <button class="choice-btn" onclick="choose('B')">«Причина дезертирства установлена?»</button>
+    <button class="choice-btn" onclick="choose('C')">«Прошу личное дело Климова.»</button>
+  </div>
+  <div id="result">
+    <div class="res-label">Реакция</div>
+    <div class="res-line"></div>
+    <div class="res-txt" id="res-txt"></div>
+    <button id="continue-btn" onclick="showEnding()">Продолжить ▸</button>
+  </div>
+  <div id="ending">
+    <div class="end-glyph">◈</div>
+    <div class="end-ch">Глава первая завершена</div>
+    <div class="end-title">ПЕРИМЕТР</div>
+    <div class="end-line"></div>
+    <div class="end-txt" id="end-txt"></div>
+    <div class="end-stat" id="end-stat"></div>
+    <button id="menu-btn" onclick="goMenu()">В главное меню</button>
+  </div>
+  <div id="ver">С3·В1</div>
+</div>
+<script src="../js/achievements.js"></script>
+<script>
+localStorage.setItem('perimetr_save', JSON.stringify({url:'chapter1/scene3.html'}));
+const NARRATION = 'Климов. Техник третьего уровня. Исчез шесть часов назад. Найди его, Северов. Живым. Это всё что тебе нужно знать.';
+const CHOICES = {
+  A: { result:'Морозов кивнул. Коротко. Он ценил тех, кто не задаёт лишних вопросов. Но Северов заметил — папка на столе была перевёрнута. Генерал не хотел, чтобы он видел гриф.', ending:'Вы приняли приказ молча. Морозов доволен вашей дисциплиной. Но что скрывает папка на столе? Климов — просто дезертир, или что-то большее?', stat:'ДОВЕРИЕ ГЕНЕРАЛА: +1\nИНФОРМАЦИЯ: МИНИМУМ' },
+  B: { result:'Морозов помолчал секунду дольше обычного. «Личные обстоятельства. Не твоё дело, Северов.» Пауза была короткой, но достаточной.', ending:'Вы задали вопрос. Морозов раздражён, но ответил. Его пауза говорила больше слов — у Климова была причина бежать.', stat:'ДОВЕРИЕ ГЕНЕРАЛА: −1\nИНФОРМАЦИЯ: ЧАСТИЧНАЯ' },
+  C: { result:'Рука генерала на мгновение замерла. Потом он достал тонкую папку. «Держи. Там немного.» Северов взял. Папка была слишком лёгкой для человека, прожившего в бункере восемь лет.', ending:'Вы запросили досье. Морозов колебался. Папка почти пуста — страницы вырваны. Кто-то зачистил личное дело Климова до вашего прихода.', stat:'ДОВЕРИЕ ГЕНЕРАЛА: −2\nИНФОРМАЦИЯ: УЛИКА ПОЛУЧЕНА' }
+};
+let picked = null;
+let voiceOn = true;
+const synth = window.speechSynthesis;
+if(synth) synth.addEventListener('voiceschanged',()=>synth.getVoices());
+
+function getSettings() {
+  try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
+}
+
+function speak(t){
+  if(!voiceOn||!synth) return;
+  synth.cancel();
+  const cfg = getSettings();
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang='ru-RU'; u.rate=cfg.rate; u.pitch=cfg.pitch; u.volume=cfg.volume;
+  const rv=synth.getVoices().find(v=>v.lang.startsWith('ru'));
+  if(rv) u.voice=rv;
+  synth.speak(u);
+}
+
+function toggleVoice(){
+  voiceOn=!voiceOn;
+  const b=document.getElementById('voice-btn');
+  b.textContent=voiceOn?'🔊':'🔇';
+  b.classList.toggle('muted',!voiceOn);
+  if(!voiceOn) synth.cancel(); else speak(NARRATION);
+}
+
+const vid=document.getElementById('video');
+vid.addEventListener('canplay',()=>{vid.play().catch(()=>{});},{once:true});
+vid.load();
+setTimeout(()=>{document.getElementById('subtitle').classList.add('show');speak(NARRATION);},700);
+setTimeout(()=>{document.getElementById('choices').classList.add('show');},2800);
+
+function choose(key){
+  if(picked) return;
+  picked=key;
+  if(synth) synth.cancel();
+  document.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    b.classList.add(['A','B','C'][i]===key?'chosen':'faded');
+  });
+  const achMap = { A:'silent_officer', B:'skeptic', C:'detective' };
+  setTimeout(()=>{ perimetr_unlockAndNotify(achMap[key]); }, 700);
+  setTimeout(()=>{
+    document.getElementById('res-txt').textContent=CHOICES[key].result;
+    document.getElementById('result').classList.add('show');
+    speak(CHOICES[key].result);
+  },500);
+}
+
+function showEnding(){
+  if(!picked) return;
+  if(synth) synth.cancel();
+  const d=CHOICES[picked];
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('end-txt').textContent=d.ending;
+  document.getElementById('end-stat').textContent=d.stat;
+  document.getElementById('ending').classList.add('show');
+  perimetr_unlockAndNotify('chapter_1');
+  setTimeout(()=>speak(d.ending),600);
+}
+
+function goMenu(){
+  if(synth) synth.cancel();
+  const t=document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(()=>{ window.location.href='../'; },400);
+}
+</script>
+</body>
+</html>
