@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ПЕРИМЕТР · Сцена 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+#game { width:100%; max-width:430px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; font-family:'Oswald', sans-serif; }
+#video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.grad-top { position:absolute; top:0; left:0; right:0; height:30%; background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent); pointer-events:none; }
+.grad-bot { position:absolute; bottom:0; left:0; right:0; height:55%; background:linear-gradient(to top,rgba(0,0,0,0.97),rgba(0,0,0,0) 70%); pointer-events:none; }
+#status { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; padding:14px 16px 0; z-index:10; font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.75); text-transform:uppercase; }
+#location { position:absolute; top:34px; left:16px; z-index:10; font-size:8px; letter-spacing:3px; color:rgba(200,200,200,0.4); text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+#location::before { content:''; width:12px; height:1px; background:rgba(192,0,10,0.8); box-shadow:0 0 4px rgba(192,0,10,0.5); }
+#voice-btn { position:absolute; top:10px; right:14px; z-index:20; background:rgba(10,3,3,0.7); border:1px solid rgba(140,0,0,0.3); color:rgba(192,0,10,0.8); font-size:16px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+#voice-btn:active { background:rgba(192,0,10,0.2); }
+#voice-btn.muted { color:rgba(100,100,100,0.5); border-color:rgba(80,80,80,0.2); }
+#subtitle { position:absolute; bottom:110px; left:14px; right:14px; text-align:center; z-index:10; opacity:0; transition:opacity 0.6s; }
+#subtitle.show { opacity:1; }
+.sub-speaker { font-size:8px; letter-spacing:4px; color:rgba(192,0,10,0.9); text-transform:uppercase; margin-bottom:7px; }
+.sub-text { font-size:15px; line-height:1.7; font-weight:300; color:rgba(235,222,210,0.97); letter-spacing:0.3px; text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1),0 0 40px rgba(0,0,0,0.8); }
+#action { position:absolute; bottom:20px; left:14px; right:14px; z-index:20; opacity:0; transform:translateY(8px); transition:opacity 0.5s,transform 0.5s; pointer-events:none; }
+#action.show { opacity:1; transform:translateY(0); pointer-events:all; }
+.act-btn { width:100%; background:rgba(5,1,1,0.87); border:1px solid rgba(192,0,10,0.4); color:rgba(215,195,185,0.88); font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:4px; text-transform:uppercase; padding:14px 18px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:all 0.18s; }
+.act-btn::before { content:'▸'; color:rgba(192,0,10,0.9); font-size:10px; }
+.act-btn:active { background:rgba(60,5,5,0.92); border-color:rgba(192,0,10,0.8); color:#fff; letter-spacing:5px; box-shadow:0 0 20px rgba(192,0,10,0.3); }
+#ver { position:absolute; bottom:6px; right:12px; z-index:10; font-size:7px; letter-spacing:2px; color:rgba(70,30,30,0.4); text-transform:uppercase; }
+#trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
+#trans.on { opacity:1; pointer-events:all; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="trans"></div>
+  <video id="video" muted loop playsinline webkit-playsinline src="../artifacts/perimetr/public/Video/ch1_s1.mp4" preload="auto"></video>
+  <div class="grad-top"></div>
+  <div class="grad-bot"></div>
+  <div id="status"><span>Артур Северов</span><span>Офицер · Сектор 7</span></div>
+  <div id="location">Коридор Б-7 · Уровень −3</div>
+  <button id="voice-btn" onclick="toggleVoice()" title="Озвучка">🔊</button>
+  <div id="subtitle">
+    <div class="sub-speaker">Повествование</div>
+    <div class="sub-text">Вызов пришёл в 03:14. Коридор пуст — только красные лампы и гул вентиляции. Северов шёл медленно, считая шаги. Кто-то исчез из закрытого сектора. Это невозможно.</div>
+  </div>
+  <div id="action">
+    <button class="act-btn" onclick="goNext()">Идти к кабинету генерала</button>
+  </div>
+  <div id="ver">С1·В1</div>
+</div>
+<script src="../js/achievements.js"></script>
+<script>
+localStorage.setItem('perimetr_save', JSON.stringify({ url: 'chapter1/scene1.html' }));
+const NARRATION = 'Вызов пришёл в три часа четырнадцать минут. Коридор пуст — только красные лампы и гул вентиляции. Северов шёл медленно, считая шаги. Кто-то исчез из закрытого сектора. Это невозможно.';
+let voiceOn = true;
+const synth = window.speechSynthesis;
+if (synth) synth.addEventListener('voiceschanged', () => synth.getVoices());
+
+function getSettings() {
+  try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
+}
+
+function speak(text) {
+  if (!voiceOn || !synth) return;
+  synth.cancel();
+  const cfg = getSettings();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ru-RU'; u.rate = cfg.rate; u.pitch = cfg.pitch; u.volume = cfg.volume;
+  const rv = synth.getVoices().find(v => v.lang.startsWith('ru'));
+  if (rv) u.voice = rv;
+  synth.speak(u);
+}
+
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  const btn = document.getElementById('voice-btn');
+  btn.textContent = voiceOn ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !voiceOn);
+  if (!voiceOn) synth.cancel(); else speak(NARRATION);
+}
+
+const vid = document.getElementById('video');
+vid.addEventListener('canplay', () => { vid.play().catch(() => {}); }, { once: true });
+vid.load();
+setTimeout(() => { document.getElementById('subtitle').classList.add('show'); speak(NARRATION); }, 700);
+setTimeout(() => { document.getElementById('action').classList.add('show'); }, 2800);
+setTimeout(() => { perimetr_unlockAndNotify('first_step'); }, 1200);
+
+function goNext() {
+  if (synth) synth.cancel();
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { window.location.href = 'scene2.html'; }, 400);
+}
+</script>
+</body>
+</html>
