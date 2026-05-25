@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ПЕРИМЕТР</title>
+<meta name="description" content="ПЕРИМЕТР — интерактивная новелла. СССР 2047. Минский бункер." />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+#game {
+  width:100%; max-width:430px; height:100dvh;
+  margin:0 auto; position:relative; overflow:hidden;
+  font-family:'Oswald', sans-serif;
+}
+#bg {
+  position:absolute; inset:0;
+  background:url('/images/bg-menu.png') center/cover no-repeat;
+}
+#bg::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.0) 20%,rgba(0,0,0,0.55) 60%,rgba(0,0,0,0.95) 100%);
+}
+#bg::after {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 30% at 50% 15%,rgba(180,0,0,0.14) 0%,transparent 70%);
+  animation:flicker 5s ease-in-out infinite;
+}
+@keyframes flicker { 0%,100%{opacity:1} 40%{opacity:0.65} 42%{opacity:1} 65%{opacity:0.75} 67%{opacity:1} }
+#header {
+  position:absolute; top:0; left:0; right:0; z-index:10;
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  padding-top:40px; gap:0;
+}
+.lbl-top { font-size:10px; letter-spacing:5px; color:rgba(200,70,70,0.9); text-transform:uppercase; text-shadow:0 0 14px rgba(180,0,0,0.6); margin-bottom:10px; }
+.game-title {
+  font-family:'Russo One', sans-serif; font-size:clamp(44px,13vw,62px);
+  letter-spacing:clamp(6px,2vw,14px); color:#fff; line-height:1;
+  text-shadow:0 0 30px rgba(200,0,0,1),0 0 60px rgba(200,0,0,0.45),0 3px 10px rgba(0,0,0,1);
+  animation:titleGlow 3s ease-in-out infinite;
+}
+@keyframes titleGlow {
+  0%,100%{text-shadow:0 0 30px rgba(200,0,0,1),0 0 60px rgba(200,0,0,0.45),0 3px 10px #000;}
+  50%{text-shadow:0 0 50px rgba(220,0,0,1),0 0 90px rgba(200,0,0,0.65),0 3px 10px #000;}
+}
+.lbl-bot { margin-top:10px; font-size:10px; letter-spacing:4px; color:rgba(175,140,120,0.65); text-transform:uppercase; }
+.hdr-line { width:50px; height:1px; margin-top:14px; background:linear-gradient(to right,transparent,rgba(180,0,0,0.75),transparent); }
+#menu {
+  position:absolute; bottom:0; left:0; right:0; z-index:10;
+  display:flex; flex-direction:column; align-items:center; padding:0 22px 50px;
+}
+.menu-sep { display:flex; align-items:center; gap:10px; width:100%; margin-bottom:16px; }
+.menu-sep::before,.menu-sep::after { content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,rgba(130,20,20,0.55),transparent); }
+.menu-sep span { font-size:8px; letter-spacing:4px; color:rgba(130,20,20,0.65); text-transform:uppercase; }
+.btn { width:100%; background:none; border:none; cursor:pointer; margin-bottom:6px; padding:0; }
+.btn-body {
+  position:relative; display:flex; align-items:center; justify-content:center;
+  gap:10px; padding:13px 18px; overflow:hidden; transition:all 0.18s;
+}
+.btn-body::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,rgba(4,1,1,0) 0%,rgba(16,4,4,0.9) 12%,rgba(16,4,4,0.9) 88%,rgba(4,1,1,0) 100%);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+.btn-body::after { content:''; position:absolute; inset:0 11% 0 11%; border-top:1px solid rgba(100,15,15,0.4); border-bottom:1px solid rgba(100,15,15,0.4); }
+.dot { position:relative; z-index:2; width:5px; height:5px; border-radius:50%; background:rgba(80,28,28,0.9); box-shadow:0 0 4px rgba(150,0,0,0.3); flex-shrink:0; transition:all 0.18s; }
+.btn-text { position:relative; z-index:2; font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:5px; text-transform:uppercase; color:rgba(210,190,180,0.85); text-shadow:0 0 8px rgba(160,0,0,0.2); transition:all 0.18s; }
+.btn.primary .btn-body::before { background:linear-gradient(90deg,rgba(4,1,1,0) 0%,rgba(42,7,7,0.95) 10%,rgba(42,7,7,0.95) 90%,rgba(4,1,1,0) 100%); }
+.btn.primary .btn-body::after { border-color:rgba(150,25,25,0.6); }
+.btn.primary .btn-text { color:#fff; font-size:16px; letter-spacing:6px; text-shadow:0 0 14px rgba(200,0,0,0.5); }
+.btn.primary .dot { background:rgba(175,0,8,1); box-shadow:0 0 8px rgba(200,0,10,0.7); }
+.btn.muted .btn-text { color:rgba(120,95,85,0.6); font-size:12px; }
+.btn.muted .dot { background:rgba(48,22,22,0.5); box-shadow:none; }
+.btn:active .btn-body::before { background:linear-gradient(90deg,rgba(4,1,1,0) 0%,rgba(65,8,8,0.96) 12%,rgba(65,8,8,0.96) 88%,rgba(4,1,1,0) 100%); }
+.btn:active .btn-text { color:#fff; letter-spacing:6px; text-shadow:0 0 20px rgba(220,0,0,1); }
+.btn:active .dot { background:rgba(200,0,10,1); box-shadow:0 0 10px rgba(200,0,10,0.9); }
+#ver { position:absolute; bottom:10px; right:14px; z-index:10; font-size:8px; letter-spacing:2px; color:rgba(80,38,38,0.45); text-transform:uppercase; }
+#trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
+#trans.on { opacity:1; pointer-events:all; }
+#toast {
+  position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
+  background:rgba(7,2,2,0.96); border:1px solid rgba(155,0,0,0.4);
+  color:rgba(210,170,170,0.9); font-size:11px; letter-spacing:3px;
+  padding:12px 22px; text-transform:uppercase; z-index:200; white-space:nowrap;
+  opacity:0; transition:opacity 0.3s; pointer-events:none;
+}
+#toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="trans"></div>
+  <div id="toast"></div>
+  <div id="bg"></div>
+  <div id="header">
+    <div class="lbl-top">СССР · 2047</div>
+    <div class="game-title">ПЕРИМЕТР</div>
+    <div class="lbl-bot">Сектор 7 · Минский бункер</div>
+    <div class="hdr-line"></div>
+  </div>
+  <div id="menu">
+    <div class="menu-sep"><span>Главное меню</span></div>
+    <button class="btn primary" onclick="startGame()">
+      <div class="btn-body"><div class="dot"></div><span class="btn-text">Начать игру</span><div class="dot"></div></div>
+    </button>
+    <button class="btn" onclick="continueGame()">
+      <div class="btn-body"><div class="dot"></div><span class="btn-text">Продолжить</span><div class="dot"></div></div>
+    </button>
+    <button class="btn muted" onclick="showToast('Скоро')">
+      <div class="btn-body"><div class="dot"></div><span class="btn-text">Настройки</span><div class="dot"></div></div>
+    </button>
+    <button class="btn muted" onclick="showToast('Скоро')">
+      <div class="btn-body"><div class="dot"></div><span class="btn-text">Достижения</span><div class="dot"></div></div>
+    </button>
+    <button class="btn muted" onclick="showToast('Закройте вкладку')">
+      <div class="btn-body"><div class="dot"></div><span class="btn-text">Выход</span><div class="dot"></div></div>
+    </button>
+  </div>
+  <div id="ver">ВЕРСИЯ 3 · Глава I</div>
+</div>
+<script>
+function showToast(msg, ms=1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+function fade(cb) {
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { cb(); setTimeout(() => t.classList.remove('on'), 80); }, 400);
+}
+function startGame() {
+  fade(() => { window.location.href = '/chapter1/scene1.html'; });
+}
+function continueGame() {
+  const s = localStorage.getItem('perimetr_save');
+  if (s) {
+    fade(() => { window.location.href = '/' + JSON.parse(s).url; });
+  } else {
+    showToast('Нет сохранений');
+  }
+}
+</script>
+</body>
+</html>
