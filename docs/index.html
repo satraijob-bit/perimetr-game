@@ -479,7 +479,11 @@ function fade(cb) {
   t.classList.add('on');
   setTimeout(() => { cb(); setTimeout(() => t.classList.remove('on'), 80); }, 400);
 }
-function startGame() { fade(() => { window.location.href = 'chapter1/scene1.html'; }); }
+function startGame() {
+  if (typeof perimetr_resetState === 'function') perimetr_resetState();
+  localStorage.removeItem('perimetr_achievements');
+  fade(() => { window.location.href = 'chapter1/scene1.html'; });
+}
 function continueGame() {
   const s = localStorage.getItem('perimetr_save');
   if (s) { fade(() => { window.location.href = JSON.parse(s).url; }); }
@@ -539,12 +543,17 @@ if (window.speechSynthesis) window.speechSynthesis.addEventListener('voiceschang
 
 // ── ДОСТИЖЕНИЯ ──
 const ACHIEVEMENTS_DEF = [
-  { id:'first_step',     name:'Первый шаг',         desc:'Вы вошли в коридор бункера',           icon:'▶', rarity:'common',   chapter:'Глава I' },
-  { id:'sector_7',       name:'Сектор 7',            desc:'Вы достигли кабинета командования',    icon:'⬡', rarity:'common',   chapter:'Глава I' },
-  { id:'chapter_1',      name:'Периметр держится',   desc:'Первая глава пройдена',                icon:'◆', rarity:'uncommon', chapter:'Глава I' },
-  { id:'silent_officer', name:'Дисциплина',          desc:'Приняли приказ без лишних вопросов',   icon:'✦', rarity:'uncommon', chapter:'Глава I' },
-  { id:'skeptic',        name:'Сомнение',            desc:'Усомнились в версии генерала',         icon:'◎', rarity:'uncommon', chapter:'Глава I' },
-  { id:'detective',      name:'Детектив',            desc:'Запросили личное дело Климова',        icon:'◈', rarity:'rare',     chapter:'Глава I' },
+  { id:'first_step',     name:'Первый шаг',        desc:'Вы вошли в коридор бункера',             icon:'▶', rarity:'common',   chapter:'Глава I', hidden:false },
+  { id:'sector_7',       name:'Сектор 7',           desc:'Вы достигли кабинета командования',      icon:'⬡', rarity:'common',   chapter:'Глава I', hidden:false },
+  { id:'chapter_1',      name:'Периметр держится',  desc:'Первая глава пройдена',                  icon:'◆', rarity:'uncommon', chapter:'Глава I', hidden:false },
+  { id:'silent_officer', name:'Дисциплина',         desc:'Приняли приказ без лишних вопросов',     icon:'✦', rarity:'uncommon', chapter:'Глава I', hidden:false },
+  { id:'skeptic',        name:'Сомнение',           desc:'Усомнились в версии генерала',           icon:'◎', rarity:'uncommon', chapter:'Глава I', hidden:false },
+  { id:'detective',      name:'Детектив',           desc:'Запросили личное дело Климова',          icon:'◈', rarity:'rare',     chapter:'Глава I', hidden:false },
+  { id:'silence_s3',     name:'Молчание — ответ',   desc:'Промолчали перед генералом Морозовым',  icon:'◌', rarity:'uncommon', chapter:'Глава I', hidden:true },
+  { id:'time_out',       name:'Время истекло',      desc:'Позволили таймеру решить за вас',        icon:'⧖', rarity:'uncommon', chapter:'Глава I', hidden:true },
+  { id:'inscription_b7', name:'КЛ-07 ЖИВ?',        desc:'Нашли надпись в Коридоре Б-7',           icon:'◉', rarity:'rare',     chapter:'Глава I', hidden:true },
+  { id:'paranoid_mind',  name:'Паранойя',           desc:'Уровень паранойи превысил 50 единиц',   icon:'◫', rarity:'rare',     chapter:'Глава I', hidden:true },
+  { id:'silence_x3',     name:'Обет молчания',      desc:'Промолчали трижды подряд',               icon:'◯', rarity:'rare',     chapter:'Глава I', hidden:true },
 ];
 const RARITY_LABEL = { common:'Обычное', uncommon:'Необычное', rare:'Редкое' };
 
@@ -578,14 +587,20 @@ function renderAchievements() {
       body.appendChild(sep);
     }
     const isOn = unlocked.includes(a.id);
+    const isHiddenLocked = a.hidden && !isOn;
     const card = document.createElement('div');
-    card.className = 'ach-card' + (isOn ? ' unlocked' : '') + (a.rarity === 'rare' ? ' rare' : '');
+    card.className = 'ach-card' + (isOn ? ' unlocked' : '') + (a.rarity === 'rare' && isOn ? ' rare' : '');
+    if (isHiddenLocked) card.style.opacity = '0.5';
     card.innerHTML =
-      '<div class="ach-icon-wrap">' + a.icon + '</div>' +
+      '<div class="ach-icon-wrap" style="' + (isHiddenLocked ? 'color:rgba(50,20,15,0.5);' : '') + '">' +
+        (isHiddenLocked ? '?' : a.icon) +
+      '</div>' +
       '<div class="ach-card-info">' +
-        '<div class="ach-card-name">' + (isOn ? a.name : '???') + '</div>' +
-        '<div class="ach-card-desc">' + (isOn ? a.desc : 'Продолжайте игру') + '</div>' +
-        '<div class="ach-card-meta"><span class="ach-rarity">' + RARITY_LABEL[a.rarity] + '</span></div>' +
+        '<div class="ach-card-name">' + (isOn ? a.name : (isHiddenLocked ? '???????????' : '???')) + '</div>' +
+        '<div class="ach-card-desc">' + (isOn ? a.desc : (isHiddenLocked ? 'Засекречено' : 'Продолжайте игру')) + '</div>' +
+        '<div class="ach-card-meta"><span class="ach-rarity">' +
+          (isHiddenLocked ? 'Скрытое' : RARITY_LABEL[a.rarity]) +
+        '</span></div>' +
       '</div>' +
       '<div class="ach-lock">' + (isOn ? '' : '🔒') + '</div>';
     body.appendChild(card);
@@ -601,5 +616,6 @@ function closeAchievements() { document.getElementById('ach-overlay').classList.
 // Обновить значок при загрузке
 updateAchBadge();
 </script>
+<script src="js/game-state.js"></script>
 </body>
 </html>
