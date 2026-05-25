@@ -56,15 +56,23 @@ const NARRATION = 'Вызов пришёл в три часа четырнадц
 let voiceOn = true;
 const synth = window.speechSynthesis;
 if (synth) synth.addEventListener('voiceschanged', () => synth.getVoices());
+
+function getSettings() {
+  try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
+}
+
 function speak(text) {
   if (!voiceOn || !synth) return;
   synth.cancel();
+  const cfg = getSettings();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'ru-RU'; u.rate = 0.87; u.pitch = 0.88;
+  u.lang = 'ru-RU'; u.rate = cfg.rate; u.pitch = cfg.pitch; u.volume = cfg.volume;
   const rv = synth.getVoices().find(v => v.lang.startsWith('ru'));
   if (rv) u.voice = rv;
   synth.speak(u);
 }
+
 function toggleVoice() {
   voiceOn = !voiceOn;
   const btn = document.getElementById('voice-btn');
@@ -72,19 +80,18 @@ function toggleVoice() {
   btn.classList.toggle('muted', !voiceOn);
   if (!voiceOn) synth.cancel(); else speak(NARRATION);
 }
+
 const vid = document.getElementById('video');
 vid.addEventListener('canplay', () => { vid.play().catch(() => {}); }, { once: true });
 vid.load();
 setTimeout(() => { document.getElementById('subtitle').classList.add('show'); speak(NARRATION); }, 700);
 setTimeout(() => { document.getElementById('action').classList.add('show'); }, 2800);
+
 function goNext() {
   if (synth) synth.cancel();
-  fade(() => { window.location.href = 'scene2.html'; });
-}
-function fade(cb) {
   const t = document.getElementById('trans');
   t.classList.add('on');
-  setTimeout(() => { cb(); }, 400);
+  setTimeout(() => { window.location.href = 'scene2.html'; }, 400);
 }
 </script>
 </body>

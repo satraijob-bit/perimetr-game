@@ -10,60 +10,24 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { width:100%; height:100%; background:#000; overflow:hidden; }
-#game {
-  width:100%; max-width:430px; height:100dvh;
-  margin:0 auto; position:relative; overflow:hidden;
-  font-family:'Oswald', sans-serif;
-}
-#bg {
-  position:absolute; inset:0;
-  background:url('/images/bg-menu.png') center/cover no-repeat;
-}
-#bg::before {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.0) 20%,rgba(0,0,0,0.55) 60%,rgba(0,0,0,0.95) 100%);
-}
-#bg::after {
-  content:''; position:absolute; inset:0;
-  background:radial-gradient(ellipse 60% 30% at 50% 15%,rgba(180,0,0,0.14) 0%,transparent 70%);
-  animation:flicker 5s ease-in-out infinite;
-}
+#game { width:100%; max-width:430px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; font-family:'Oswald', sans-serif; }
+#bg { position:absolute; inset:0; background:url('/images/bg-menu.png') center/cover no-repeat; }
+#bg::before { content:''; position:absolute; inset:0; background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.0) 20%,rgba(0,0,0,0.55) 60%,rgba(0,0,0,0.95) 100%); }
+#bg::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 30% at 50% 15%,rgba(180,0,0,0.14) 0%,transparent 70%); animation:flicker 5s ease-in-out infinite; }
 @keyframes flicker { 0%,100%{opacity:1} 40%{opacity:0.65} 42%{opacity:1} 65%{opacity:0.75} 67%{opacity:1} }
-#header {
-  position:absolute; top:0; left:0; right:0; z-index:10;
-  display:flex; flex-direction:column; align-items:center; text-align:center;
-  padding-top:40px; gap:0;
-}
+#header { position:absolute; top:0; left:0; right:0; z-index:10; display:flex; flex-direction:column; align-items:center; text-align:center; padding-top:40px; }
 .lbl-top { font-size:10px; letter-spacing:5px; color:rgba(200,70,70,0.9); text-transform:uppercase; text-shadow:0 0 14px rgba(180,0,0,0.6); margin-bottom:10px; }
-.game-title {
-  font-family:'Russo One', sans-serif; font-size:clamp(44px,13vw,62px);
-  letter-spacing:clamp(6px,2vw,14px); color:#fff; line-height:1;
-  text-shadow:0 0 30px rgba(200,0,0,1),0 0 60px rgba(200,0,0,0.45),0 3px 10px rgba(0,0,0,1);
-  animation:titleGlow 3s ease-in-out infinite;
-}
-@keyframes titleGlow {
-  0%,100%{text-shadow:0 0 30px rgba(200,0,0,1),0 0 60px rgba(200,0,0,0.45),0 3px 10px #000;}
-  50%{text-shadow:0 0 50px rgba(220,0,0,1),0 0 90px rgba(200,0,0,0.65),0 3px 10px #000;}
-}
+.game-title { font-family:'Russo One',sans-serif; font-size:clamp(44px,13vw,62px); letter-spacing:clamp(6px,2vw,14px); color:#fff; line-height:1; text-shadow:0 0 30px rgba(200,0,0,1),0 0 60px rgba(200,0,0,0.45),0 3px 10px rgba(0,0,0,1); animation:titleGlow 3s ease-in-out infinite; }
+@keyframes titleGlow { 0%,100%{text-shadow:0 0 30px rgba(200,0,0,1),0 0 60px rgba(200,0,0,0.45),0 3px 10px #000;} 50%{text-shadow:0 0 50px rgba(220,0,0,1),0 0 90px rgba(200,0,0,0.65),0 3px 10px #000;} }
 .lbl-bot { margin-top:10px; font-size:10px; letter-spacing:4px; color:rgba(175,140,120,0.65); text-transform:uppercase; }
 .hdr-line { width:50px; height:1px; margin-top:14px; background:linear-gradient(to right,transparent,rgba(180,0,0,0.75),transparent); }
-#menu {
-  position:absolute; bottom:0; left:0; right:0; z-index:10;
-  display:flex; flex-direction:column; align-items:center; padding:0 22px 50px;
-}
+#menu { position:absolute; bottom:0; left:0; right:0; z-index:10; display:flex; flex-direction:column; align-items:center; padding:0 22px 50px; }
 .menu-sep { display:flex; align-items:center; gap:10px; width:100%; margin-bottom:16px; }
 .menu-sep::before,.menu-sep::after { content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,rgba(130,20,20,0.55),transparent); }
 .menu-sep span { font-size:8px; letter-spacing:4px; color:rgba(130,20,20,0.65); text-transform:uppercase; }
 .btn { width:100%; background:none; border:none; cursor:pointer; margin-bottom:6px; padding:0; }
-.btn-body {
-  position:relative; display:flex; align-items:center; justify-content:center;
-  gap:10px; padding:13px 18px; overflow:hidden; transition:all 0.18s;
-}
-.btn-body::before {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg,rgba(4,1,1,0) 0%,rgba(16,4,4,0.9) 12%,rgba(16,4,4,0.9) 88%,rgba(4,1,1,0) 100%);
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-}
+.btn-body { position:relative; display:flex; align-items:center; justify-content:center; gap:10px; padding:13px 18px; overflow:hidden; transition:all 0.18s; }
+.btn-body::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg,rgba(4,1,1,0) 0%,rgba(16,4,4,0.9) 12%,rgba(16,4,4,0.9) 88%,rgba(4,1,1,0) 100%); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
 .btn-body::after { content:''; position:absolute; inset:0 11% 0 11%; border-top:1px solid rgba(100,15,15,0.4); border-bottom:1px solid rgba(100,15,15,0.4); }
 .dot { position:relative; z-index:2; width:5px; height:5px; border-radius:50%; background:rgba(80,28,28,0.9); box-shadow:0 0 4px rgba(150,0,0,0.3); flex-shrink:0; transition:all 0.18s; }
 .btn-text { position:relative; z-index:2; font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:5px; text-transform:uppercase; color:rgba(210,190,180,0.85); text-shadow:0 0 8px rgba(160,0,0,0.2); transition:all 0.18s; }
@@ -79,14 +43,86 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
 #ver { position:absolute; bottom:10px; right:14px; z-index:10; font-size:8px; letter-spacing:2px; color:rgba(80,38,38,0.45); text-transform:uppercase; }
 #trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
 #trans.on { opacity:1; pointer-events:all; }
-#toast {
-  position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
-  background:rgba(7,2,2,0.96); border:1px solid rgba(155,0,0,0.4);
-  color:rgba(210,170,170,0.9); font-size:11px; letter-spacing:3px;
-  padding:12px 22px; text-transform:uppercase; z-index:200; white-space:nowrap;
-  opacity:0; transition:opacity 0.3s; pointer-events:none;
-}
+#toast { position:absolute; bottom:80px; left:50%; transform:translateX(-50%); background:rgba(7,2,2,0.96); border:1px solid rgba(155,0,0,0.4); color:rgba(210,170,170,0.9); font-size:11px; letter-spacing:3px; padding:12px 22px; text-transform:uppercase; z-index:200; white-space:nowrap; opacity:0; transition:opacity 0.3s; pointer-events:none; }
 #toast.show { opacity:1; }
+
+/* ── НАСТРОЙКИ ── */
+#settings-overlay {
+  position:absolute; inset:0; z-index:100;
+  background:rgba(2,0,0,0.97);
+  display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#settings-overlay.open { transform:translateY(0); }
+
+.settings-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:40px 22px 18px;
+  border-bottom:1px solid rgba(120,15,15,0.3);
+}
+.settings-title-block { display:flex; flex-direction:column; gap:6px; }
+.settings-sup { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.7); text-transform:uppercase; }
+.settings-title { font-family:'Russo One',sans-serif; font-size:22px; letter-spacing:6px; color:rgba(230,210,200,0.9); }
+.settings-close {
+  width:38px; height:38px; border-radius:50%;
+  background:rgba(15,4,4,0.9); border:1px solid rgba(120,15,15,0.5);
+  color:rgba(192,0,10,0.8); font-size:18px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.18s;
+}
+.settings-close:active { background:rgba(192,0,10,0.3); }
+
+.settings-body { flex:1; overflow-y:auto; padding:28px 22px; display:flex; flex-direction:column; gap:28px; }
+
+.setting-group { display:flex; flex-direction:column; gap:12px; }
+.setting-label {
+  display:flex; justify-content:space-between; align-items:center;
+}
+.setting-name { font-size:9px; letter-spacing:4px; color:rgba(175,140,120,0.7); text-transform:uppercase; }
+.setting-value { font-size:11px; letter-spacing:2px; color:rgba(192,0,10,0.9); font-family:'Russo One',sans-serif; }
+.setting-desc { font-size:10px; letter-spacing:1px; color:rgba(100,75,65,0.6); line-height:1.5; margin-top:-4px; }
+
+/* slider */
+input[type=range] {
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:2px; border-radius:1px;
+  background:rgba(60,15,15,0.8);
+  outline:none; cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:18px; height:18px; border-radius:50%;
+  background:rgba(192,0,10,1);
+  box-shadow:0 0 10px rgba(192,0,10,0.6);
+  cursor:pointer; transition:box-shadow 0.18s;
+}
+input[type=range]:active::-webkit-slider-thumb { box-shadow:0 0 18px rgba(192,0,10,0.9); }
+input[type=range]::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:rgba(192,0,10,1); border:none; box-shadow:0 0 10px rgba(192,0,10,0.6); cursor:pointer; }
+input[type=range]::-webkit-slider-runnable-track { height:2px; border-radius:1px; }
+
+.slider-marks { display:flex; justify-content:space-between; margin-top:4px; }
+.slider-marks span { font-size:8px; letter-spacing:2px; color:rgba(80,35,35,0.6); text-transform:uppercase; }
+
+.settings-divider { height:1px; background:linear-gradient(to right,transparent,rgba(100,15,15,0.3),transparent); }
+
+/* кнопки внизу */
+.settings-footer { padding:0 22px 44px; display:flex; flex-direction:column; gap:10px; }
+.settings-btn {
+  width:100%; padding:14px; cursor:pointer;
+  font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:4px; text-transform:uppercase;
+  transition:all 0.18s; border:none;
+}
+.settings-btn.accent {
+  background:rgba(192,0,10,0.15); border:1px solid rgba(192,0,10,0.5);
+  color:rgba(192,0,10,0.9);
+}
+.settings-btn.accent:active { background:rgba(192,0,10,0.35); }
+.settings-btn.ghost {
+  background:transparent; border:1px solid rgba(80,30,30,0.4);
+  color:rgba(120,85,75,0.7);
+}
+.settings-btn.ghost:active { border-color:rgba(192,0,10,0.4); color:rgba(192,0,10,0.7); }
 </style>
 </head>
 <body>
@@ -94,12 +130,14 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
   <div id="trans"></div>
   <div id="toast"></div>
   <div id="bg"></div>
+
   <div id="header">
     <div class="lbl-top">СССР · 2047</div>
     <div class="game-title">ПЕРИМЕТР</div>
     <div class="lbl-bot">Сектор 7 · Минский бункер</div>
     <div class="hdr-line"></div>
   </div>
+
   <div id="menu">
     <div class="menu-sep"><span>Главное меню</span></div>
     <button class="btn primary" onclick="startGame()">
@@ -108,7 +146,7 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
     <button class="btn" onclick="continueGame()">
       <div class="btn-body"><div class="dot"></div><span class="btn-text">Продолжить</span><div class="dot"></div></div>
     </button>
-    <button class="btn muted" onclick="showToast('Скоро')">
+    <button class="btn" onclick="openSettings()">
       <div class="btn-body"><div class="dot"></div><span class="btn-text">Настройки</span><div class="dot"></div></div>
     </button>
     <button class="btn muted" onclick="showToast('Скоро')">
@@ -118,30 +156,167 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
       <div class="btn-body"><div class="dot"></div><span class="btn-text">Выход</span><div class="dot"></div></div>
     </button>
   </div>
+
   <div id="ver">ВЕРСИЯ 3 · Глава I</div>
+
+  <!-- НАСТРОЙКИ -->
+  <div id="settings-overlay">
+    <div class="settings-header">
+      <div class="settings-title-block">
+        <div class="settings-sup">Конфигурация</div>
+        <div class="settings-title">НАСТРОЙКИ</div>
+      </div>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="settings-body">
+      <div class="setting-group">
+        <div class="setting-label">
+          <span class="setting-name">Громкость голоса</span>
+          <span class="setting-value" id="vol-val">100%</span>
+        </div>
+        <div class="setting-desc">Уровень громкости речевого сопровождения</div>
+        <input type="range" id="vol-slider" min="0" max="100" value="100" oninput="updateSetting('volume', this.value)">
+        <div class="slider-marks"><span>Выкл</span><span>Тихо</span><span>Громко</span></div>
+      </div>
+
+      <div class="settings-divider"></div>
+
+      <div class="setting-group">
+        <div class="setting-label">
+          <span class="setting-name">Скорость речи</span>
+          <span class="setting-value" id="rate-val">Норма</span>
+        </div>
+        <div class="setting-desc">Темп произношения текста диктором</div>
+        <input type="range" id="rate-slider" min="0" max="100" value="50" oninput="updateSetting('rate', this.value)">
+        <div class="slider-marks"><span>Медленно</span><span>Норма</span><span>Быстро</span></div>
+      </div>
+
+      <div class="settings-divider"></div>
+
+      <div class="setting-group">
+        <div class="setting-label">
+          <span class="setting-name">Тембр голоса</span>
+          <span class="setting-value" id="pitch-val">Норма</span>
+        </div>
+        <div class="setting-desc">Высота голоса диктора</div>
+        <input type="range" id="pitch-slider" min="0" max="100" value="50" oninput="updateSetting('pitch', this.value)">
+        <div class="slider-marks"><span>Низкий</span><span>Норма</span><span>Высокий</span></div>
+      </div>
+    </div>
+
+    <div class="settings-footer">
+      <button class="settings-btn accent" onclick="previewVoice()">Прослушать голос ▸</button>
+      <button class="settings-btn ghost" onclick="resetSettings()">Сбросить к умолчаниям</button>
+    </div>
+  </div>
 </div>
+
 <script>
+// ── Тосты ──
 function showToast(msg, ms=1800) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), ms);
 }
+
+// ── Переход ──
 function fade(cb) {
   const t = document.getElementById('trans');
   t.classList.add('on');
   setTimeout(() => { cb(); setTimeout(() => t.classList.remove('on'), 80); }, 400);
 }
-function startGame() {
-  fade(() => { window.location.href = '/chapter1/scene1.html'; });
-}
+
+// ── Навигация ──
+function startGame() { fade(() => { window.location.href = '/chapter1/scene1.html'; }); }
 function continueGame() {
   const s = localStorage.getItem('perimetr_save');
-  if (s) {
-    fade(() => { window.location.href = '/' + JSON.parse(s).url; });
-  } else {
-    showToast('Нет сохранений');
-  }
+  if (s) { fade(() => { window.location.href = '/' + JSON.parse(s).url; }); }
+  else showToast('Нет сохранений');
 }
+
+// ── Настройки ──
+const DEFAULTS = { volume: 1.0, rate: 0.87, pitch: 0.88 };
+
+function loadSettings() {
+  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('perimetr_settings') || '{}') }; }
+  catch { return { ...DEFAULTS }; }
+}
+function saveSettings(s) { localStorage.setItem('perimetr_settings', JSON.stringify(s)); }
+
+function rateLabel(r) {
+  if (r <= 0.65) return 'Медленно';
+  if (r <= 0.80) return 'Тихо';
+  if (r <= 1.00) return 'Норма';
+  if (r <= 1.20) return 'Быстро';
+  return 'Очень быстро';
+}
+function pitchLabel(p) {
+  if (p <= 0.65) return 'Низкий';
+  if (p <= 0.85) return 'Пониженный';
+  if (p <= 1.05) return 'Норма';
+  if (p <= 1.25) return 'Повышенный';
+  return 'Высокий';
+}
+
+function syncSliders() {
+  const s = loadSettings();
+  const volSlider = document.getElementById('vol-slider');
+  const rateSlider = document.getElementById('rate-slider');
+  const pitchSlider = document.getElementById('pitch-slider');
+  volSlider.value = Math.round(s.volume * 100);
+  rateSlider.value = Math.round(((s.rate - 0.5) / (1.5 - 0.5)) * 100);
+  pitchSlider.value = Math.round(((s.pitch - 0.5) / (1.5 - 0.5)) * 100);
+  document.getElementById('vol-val').textContent = Math.round(s.volume * 100) + '%';
+  document.getElementById('rate-val').textContent = rateLabel(s.rate);
+  document.getElementById('pitch-val').textContent = pitchLabel(s.pitch);
+}
+
+function updateSetting(key, sliderVal) {
+  const s = loadSettings();
+  const v = parseInt(sliderVal);
+  if (key === 'volume') {
+    s.volume = v / 100;
+    document.getElementById('vol-val').textContent = v + '%';
+  } else if (key === 'rate') {
+    s.rate = parseFloat((0.5 + (v / 100) * 1.0).toFixed(2));
+    document.getElementById('rate-val').textContent = rateLabel(s.rate);
+  } else if (key === 'pitch') {
+    s.pitch = parseFloat((0.5 + (v / 100) * 1.0).toFixed(2));
+    document.getElementById('pitch-val').textContent = pitchLabel(s.pitch);
+  }
+  saveSettings(s);
+}
+
+function resetSettings() {
+  saveSettings({ ...DEFAULTS });
+  syncSliders();
+  showToast('Сброшено');
+}
+
+function previewVoice() {
+  const synth = window.speechSynthesis;
+  if (!synth) { showToast('Голос недоступен'); return; }
+  synth.cancel();
+  const s = loadSettings();
+  const u = new SpeechSynthesisUtterance('Периметр. Минский бункер. Сектор семь.');
+  u.lang = 'ru-RU'; u.rate = s.rate; u.pitch = s.pitch; u.volume = s.volume;
+  const rv = synth.getVoices().find(v => v.lang.startsWith('ru'));
+  if (rv) u.voice = rv;
+  synth.speak(u);
+}
+
+function openSettings() {
+  syncSliders();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+// инициализация голосов
+if (window.speechSynthesis) window.speechSynthesis.addEventListener('voiceschanged', () => window.speechSynthesis.getVoices());
 </script>
 </body>
 </html>

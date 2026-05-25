@@ -90,35 +90,31 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
 localStorage.setItem('perimetr_save', JSON.stringify({url:'chapter1/scene3.html'}));
 const NARRATION = 'Климов. Техник третьего уровня. Исчез шесть часов назад. Найди его, Северов. Живым. Это всё что тебе нужно знать.';
 const CHOICES = {
-  A: {
-    result: 'Морозов кивнул. Коротко. Он ценил тех, кто не задаёт лишних вопросов. Но Северов заметил — папка на столе была перевёрнута. Генерал не хотел, чтобы он видел гриф.',
-    ending: 'Вы приняли приказ молча. Морозов доволен вашей дисциплиной. Но что скрывает папка на столе? Климов — просто дезертир, или что-то большее?',
-    stat: 'ДОВЕРИЕ ГЕНЕРАЛА: +1\nИНФОРМАЦИЯ: МИНИМУМ'
-  },
-  B: {
-    result: 'Морозов помолчал секунду дольше обычного. «Личные обстоятельства. Не твоё дело, Северов.» Пауза была короткой, но достаточной.',
-    ending: 'Вы задали вопрос. Морозов раздражён, но ответил. Его пауза говорила больше слов — у Климова была причина бежать.',
-    stat: 'ДОВЕРИЕ ГЕНЕРАЛА: −1\nИНФОРМАЦИЯ: ЧАСТИЧНАЯ'
-  },
-  C: {
-    result: 'Рука генерала на мгновение замерла. Потом он достал тонкую папку. «Держи. Там немного.» Северов взял. Папка была слишком лёгкой для человека, прожившего в бункере восемь лет.',
-    ending: 'Вы запросили досье. Морозов колебался. Папка почти пуста — страницы вырваны. Кто-то зачистил личное дело Климова до вашего прихода.',
-    stat: 'ДОВЕРИЕ ГЕНЕРАЛА: −2\nИНФОРМАЦИЯ: УЛИКА ПОЛУЧЕНА'
-  }
+  A: { result:'Морозов кивнул. Коротко. Он ценил тех, кто не задаёт лишних вопросов. Но Северов заметил — папка на столе была перевёрнута. Генерал не хотел, чтобы он видел гриф.', ending:'Вы приняли приказ молча. Морозов доволен вашей дисциплиной. Но что скрывает папка на столе? Климов — просто дезертир, или что-то большее?', stat:'ДОВЕРИЕ ГЕНЕРАЛА: +1\nИНФОРМАЦИЯ: МИНИМУМ' },
+  B: { result:'Морозов помолчал секунду дольше обычного. «Личные обстоятельства. Не твоё дело, Северов.» Пауза была короткой, но достаточной.', ending:'Вы задали вопрос. Морозов раздражён, но ответил. Его пауза говорила больше слов — у Климова была причина бежать.', stat:'ДОВЕРИЕ ГЕНЕРАЛА: −1\nИНФОРМАЦИЯ: ЧАСТИЧНАЯ' },
+  C: { result:'Рука генерала на мгновение замерла. Потом он достал тонкую папку. «Держи. Там немного.» Северов взял. Папка была слишком лёгкой для человека, прожившего в бункере восемь лет.', ending:'Вы запросили досье. Морозов колебался. Папка почти пуста — страницы вырваны. Кто-то зачистил личное дело Климова до вашего прихода.', stat:'ДОВЕРИЕ ГЕНЕРАЛА: −2\nИНФОРМАЦИЯ: УЛИКА ПОЛУЧЕНА' }
 };
 let picked = null;
 let voiceOn = true;
 const synth = window.speechSynthesis;
 if(synth) synth.addEventListener('voiceschanged',()=>synth.getVoices());
+
+function getSettings() {
+  try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
+}
+
 function speak(t){
   if(!voiceOn||!synth) return;
   synth.cancel();
+  const cfg = getSettings();
   const u=new SpeechSynthesisUtterance(t);
-  u.lang='ru-RU'; u.rate=0.87; u.pitch=0.88;
+  u.lang='ru-RU'; u.rate=cfg.rate; u.pitch=cfg.pitch; u.volume=cfg.volume;
   const rv=synth.getVoices().find(v=>v.lang.startsWith('ru'));
   if(rv) u.voice=rv;
   synth.speak(u);
 }
+
 function toggleVoice(){
   voiceOn=!voiceOn;
   const b=document.getElementById('voice-btn');
@@ -126,18 +122,19 @@ function toggleVoice(){
   b.classList.toggle('muted',!voiceOn);
   if(!voiceOn) synth.cancel(); else speak(NARRATION);
 }
+
 const vid=document.getElementById('video');
 vid.addEventListener('canplay',()=>{vid.play().catch(()=>{});},{once:true});
 vid.load();
 setTimeout(()=>{document.getElementById('subtitle').classList.add('show');speak(NARRATION);},700);
 setTimeout(()=>{document.getElementById('choices').classList.add('show');},2800);
+
 function choose(key){
   if(picked) return;
   picked=key;
   if(synth) synth.cancel();
   document.querySelectorAll('.choice-btn').forEach((b,i)=>{
-    const k=['A','B','C'][i];
-    b.classList.add(k===key?'chosen':'faded');
+    b.classList.add(['A','B','C'][i]===key?'chosen':'faded');
   });
   setTimeout(()=>{
     document.getElementById('res-txt').textContent=CHOICES[key].result;
@@ -145,6 +142,7 @@ function choose(key){
     speak(CHOICES[key].result);
   },500);
 }
+
 function showEnding(){
   if(!picked) return;
   if(synth) synth.cancel();
@@ -155,6 +153,7 @@ function showEnding(){
   document.getElementById('ending').classList.add('show');
   setTimeout(()=>speak(d.ending),600);
 }
+
 function goMenu(){
   if(synth) synth.cancel();
   const t=document.getElementById('trans');
