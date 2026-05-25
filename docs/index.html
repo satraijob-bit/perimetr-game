@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ПЕРИМЕТР</title>
+<meta name="description" content="ПЕРИМЕТР — интерактивная новелла. СССР 2047. Уральский бункер." />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+#game {
+  width:100%; max-width:430px; height:100dvh;
+  margin:0 auto; position:relative; overflow:hidden;
+  font-family:'Oswald', sans-serif;
+}
+
+/* ── ФОН ── */
+#bg {
+  position:absolute; inset:0;
+  background:url('artifacts/perimetr/public/images/bg-menu2.png') center/cover no-repeat;
+}
+#bg::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.0) 0%,
+    rgba(0,0,0,0.0) 45%,
+    rgba(0,0,0,0.75) 70%,
+    rgba(0,0,0,0.92) 100%
+  );
+}
+
+/* ── ЗАГОЛОВОК ── */
+#header {
+  position:absolute; top:0; left:0; right:0; z-index:10;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; padding-top:22px;
+}
+.lbl-top {
+  font-size:11px; letter-spacing:4px;
+  color:rgba(220,200,180,0.75); text-transform:uppercase;
+  text-shadow:0 1px 4px rgba(0,0,0,0.9);
+  margin-bottom:6px;
+}
+.game-title {
+  font-family:'Russo One', sans-serif;
+  font-size:clamp(52px,15vw,72px);
+  letter-spacing:clamp(4px,2vw,10px);
+  color:#fff; line-height:1;
+  text-shadow:
+    0 0 0 rgba(200,0,0,0),
+    2px 2px 0 rgba(100,0,0,0.8),
+    0 0 40px rgba(200,0,0,0.5),
+    0 4px 12px rgba(0,0,0,1);
+  animation:titleGlow 4s ease-in-out infinite;
+}
+@keyframes titleGlow {
+  0%,100% { text-shadow:2px 2px 0 rgba(100,0,0,0.8),0 0 40px rgba(200,0,0,0.5),0 4px 12px #000; }
+  50%      { text-shadow:2px 2px 0 rgba(130,0,0,0.9),0 0 70px rgba(210,0,0,0.75),0 4px 12px #000; }
+}
+
+/* ── МЕНЮ ── */
+#menu {
+  position:absolute; bottom:0; left:0; right:0; z-index:10;
+  display:flex; flex-direction:column; align-items:center;
+  padding:0 18px 44px;
+}
+
+/* ── КНОПКИ — металл с заклёпками ── */
+.btn {
+  width:100%; background:none; border:none;
+  cursor:pointer; margin-bottom:9px; padding:0;
+  position:relative;
+}
+
+/* Основная панель кнопки */
+.btn-panel {
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  padding:14px 22px;
+  background:linear-gradient(
+    to bottom,
+    rgba(55,18,8,0.92) 0%,
+    rgba(30,8,4,0.96) 50%,
+    rgba(22,5,3,0.98) 100%
+  );
+  border:1px solid rgba(90,30,15,0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(140,50,20,0.35),
+    inset 0 -1px 0 rgba(0,0,0,0.6),
+    0 3px 10px rgba(0,0,0,0.7),
+    0 1px 0 rgba(0,0,0,0.9);
+  transition:all 0.15s;
+  overflow:visible;
+}
+
+/* Внешняя рамка — толстый металлический бордюр */
+.btn-panel::before {
+  content:'';
+  position:absolute;
+  inset:-3px;
+  border:2px solid rgba(75,25,10,0.7);
+  box-shadow:
+    inset 0 0 0 1px rgba(50,15,5,0.5),
+    0 0 0 1px rgba(20,5,2,0.8);
+  pointer-events:none;
+}
+
+/* Заклёпки — псевдоэлементы через box-shadow */
+.btn-rivet {
+  position:absolute;
+  width:7px; height:7px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, rgba(160,70,30,0.9), rgba(60,20,8,1));
+  border:1px solid rgba(40,12,5,0.9);
+  box-shadow:0 1px 2px rgba(0,0,0,0.8), inset 0 1px 0 rgba(200,100,50,0.2);
+  z-index:2;
+}
+.btn-rivet.tl { top:-4px; left:6px; }
+.btn-rivet.tr { top:-4px; right:6px; }
+.btn-rivet.bl { bottom:-4px; left:6px; }
+.btn-rivet.br { bottom:-4px; right:6px; }
+
+/* Текст кнопки */
+.btn-text {
+  position:relative; z-index:1;
+  font-family:'Russo One', sans-serif;
+  font-size:15px; letter-spacing:5px;
+  text-transform:uppercase;
+  color:rgba(200,175,155,0.9);
+  text-shadow:0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5);
+  transition:all 0.15s;
+}
+
+/* ── PRIMARY (Начать игру) ── */
+.btn.primary .btn-panel {
+  background:linear-gradient(
+    to bottom,
+    rgba(90,10,5,0.95) 0%,
+    rgba(60,5,3,0.98) 50%,
+    rgba(40,3,2,1) 100%
+  );
+  border-color:rgba(200,0,10,0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255,50,30,0.25),
+    inset 0 -1px 0 rgba(0,0,0,0.7),
+    0 0 18px rgba(200,0,10,0.45),
+    0 0 40px rgba(180,0,8,0.2),
+    0 4px 14px rgba(0,0,0,0.8);
+}
+.btn.primary .btn-panel::before {
+  border-color:rgba(160,0,8,0.8);
+  box-shadow:
+    inset 0 0 0 1px rgba(100,0,5,0.5),
+    0 0 0 1px rgba(10,0,0,0.9),
+    0 0 14px rgba(200,0,10,0.3);
+}
+.btn.primary .btn-rivet {
+  background:radial-gradient(circle at 35% 35%, rgba(220,20,10,0.9), rgba(100,0,5,1));
+  box-shadow:0 0 6px rgba(200,0,10,0.7), inset 0 1px 0 rgba(255,50,30,0.3);
+}
+.btn.primary .btn-text {
+  font-size:17px; letter-spacing:6px;
+  color:#fff;
+  text-shadow:0 0 20px rgba(220,0,10,0.8), 0 1px 3px rgba(0,0,0,1);
+}
+
+/* ── MUTED (Достижения, Выход) ── */
+.btn.muted .btn-panel {
+  background:linear-gradient(
+    to bottom,
+    rgba(22,10,7,0.7) 0%,
+    rgba(14,6,4,0.75) 100%
+  );
+  border-color:rgba(50,20,10,0.5);
+  box-shadow:0 2px 6px rgba(0,0,0,0.5);
+}
+.btn.muted .btn-panel::before { border-color:rgba(35,14,7,0.4); }
+.btn.muted .btn-rivet { background:radial-gradient(circle at 35% 35%, rgba(70,30,15,0.6), rgba(30,10,5,0.8)); opacity:0.6; }
+.btn.muted .btn-text { color:rgba(110,80,65,0.7); font-size:13px; letter-spacing:4px; }
+
+/* ── ACTIVE STATE ── */
+.btn:active .btn-panel {
+  background:linear-gradient(to bottom, rgba(70,20,8,0.98) 0%, rgba(45,10,5,1) 100%);
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.8),
+    0 0 24px rgba(200,0,10,0.4),
+    0 1px 4px rgba(0,0,0,0.9);
+  transform:translateY(1px);
+}
+.btn:active .btn-text { color:#fff; text-shadow:0 0 22px rgba(220,0,10,1), 0 1px 3px rgba(0,0,0,1); }
+.btn.primary:active .btn-panel { box-shadow:inset 0 3px 8px rgba(0,0,0,0.9), 0 0 30px rgba(220,0,10,0.6), 0 1px 4px rgba(0,0,0,1); }
+
+#ver {
+  position:absolute; bottom:10px; right:14px; z-index:10;
+  font-size:8px; letter-spacing:2px;
+  color:rgba(80,38,38,0.45); text-transform:uppercase;
+}
+#trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
+#trans.on { opacity:1; pointer-events:all; }
+#toast {
+  position:absolute; bottom:90px; left:50%; transform:translateX(-50%);
+  background:rgba(7,2,2,0.96); border:1px solid rgba(155,0,0,0.4);
+  color:rgba(210,170,170,0.9); font-size:11px; letter-spacing:3px;
+  padding:12px 22px; text-transform:uppercase; z-index:200; white-space:nowrap;
+  opacity:0; transition:opacity 0.3s; pointer-events:none;
+}
+#toast.show { opacity:1; }
+
+/* ── ДОСТИЖЕНИЯ ── */
+#ach-overlay {
+  position:absolute; inset:0; z-index:100;
+  background:rgba(2,0,0,0.97);
+  display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#ach-overlay.open { transform:translateY(0); }
+.ach-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:40px 22px 16px;
+  border-bottom:1px solid rgba(120,15,15,0.3);
+}
+.ach-title-block { display:flex; flex-direction:column; gap:6px; }
+.ach-sup { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.7); text-transform:uppercase; }
+.ach-title { font-family:'Russo One',sans-serif; font-size:22px; letter-spacing:6px; color:rgba(230,210,200,0.9); }
+.ach-progress-bar-wrap { padding:16px 22px 12px; border-bottom:1px solid rgba(80,15,10,0.2); }
+.ach-progress-meta { display:flex; justify-content:space-between; margin-bottom:8px; }
+.ach-progress-label { font-size:8px; letter-spacing:4px; color:rgba(150,100,80,0.6); text-transform:uppercase; }
+.ach-progress-count { font-family:'Russo One',sans-serif; font-size:11px; letter-spacing:2px; color:rgba(192,0,10,0.9); }
+.ach-progress-track { height:2px; background:rgba(50,15,10,0.8); border-radius:1px; overflow:hidden; }
+.ach-progress-fill { height:100%; background:linear-gradient(to right,rgba(130,0,8,0.9),rgba(210,0,15,1)); border-radius:1px; transition:width 0.6s cubic-bezier(0.4,0,0.2,1); box-shadow:0 0 8px rgba(192,0,10,0.5); }
+.ach-body { flex:1; overflow-y:auto; padding:16px 16px 32px; display:flex; flex-direction:column; gap:8px; }
+
+/* Карточка достижения */
+.ach-card {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 14px;
+  background:linear-gradient(to right, rgba(20,6,4,0.9), rgba(12,3,2,0.95));
+  border:1px solid rgba(70,22,12,0.5);
+  position:relative; overflow:hidden;
+  transition:border-color 0.3s;
+}
+.ach-card::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:2px; background:rgba(70,22,12,0.5);
+  transition:background 0.3s;
+}
+.ach-card.unlocked { border-color:rgba(120,25,12,0.7); }
+.ach-card.unlocked::before { background:rgba(192,0,10,0.9); box-shadow:0 0 8px rgba(192,0,10,0.5); }
+.ach-card.rare.unlocked { border-color:rgba(180,130,20,0.6); }
+.ach-card.rare.unlocked::before { background:rgba(220,170,30,0.9); box-shadow:0 0 8px rgba(220,170,30,0.5); }
+
+.ach-icon-wrap {
+  width:44px; height:44px; border-radius:4px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
+  background:rgba(10,3,2,0.9);
+  border:1px solid rgba(60,20,10,0.6);
+  color:rgba(80,30,20,0.6);
+  transition:all 0.3s;
+}
+.ach-card.unlocked .ach-icon-wrap {
+  background:rgba(192,0,10,0.1);
+  border-color:rgba(192,0,10,0.4);
+  color:rgba(192,0,10,0.9);
+  box-shadow:0 0 12px rgba(192,0,10,0.15);
+}
+.ach-card.rare.unlocked .ach-icon-wrap {
+  background:rgba(220,170,30,0.1);
+  border-color:rgba(220,170,30,0.4);
+  color:rgba(220,170,30,0.9);
+  box-shadow:0 0 12px rgba(220,170,30,0.15);
+}
+.ach-card-info { flex:1; min-width:0; }
+.ach-card-name {
+  font-family:'Russo One',sans-serif; font-size:13px; letter-spacing:2px;
+  color:rgba(80,40,30,0.7); text-transform:uppercase; margin-bottom:4px;
+  transition:color 0.3s;
+}
+.ach-card.unlocked .ach-card-name { color:rgba(220,200,185,0.95); }
+.ach-card-desc { font-size:10px; letter-spacing:1px; color:rgba(70,35,25,0.6); line-height:1.5; transition:color 0.3s; }
+.ach-card.unlocked .ach-card-desc { color:rgba(150,115,95,0.75); }
+.ach-card-meta { display:flex; align-items:center; gap:6px; margin-top:5px; }
+.ach-rarity {
+  font-size:7px; letter-spacing:3px; text-transform:uppercase; padding:2px 6px;
+  border:1px solid rgba(60,20,10,0.4); color:rgba(70,35,25,0.6);
+}
+.ach-card.unlocked .ach-rarity { border-color:rgba(130,20,10,0.5); color:rgba(150,40,20,0.8); }
+.ach-card.rare.unlocked .ach-rarity { border-color:rgba(180,130,20,0.5); color:rgba(200,160,30,0.9); }
+.ach-lock {
+  font-size:14px; color:rgba(50,20,12,0.5); flex-shrink:0;
+  transition:opacity 0.3s;
+}
+.ach-card.unlocked .ach-lock { opacity:0; width:0; overflow:hidden; }
+.ach-chapter-sep {
+  font-size:8px; letter-spacing:5px; color:rgba(100,35,20,0.5); text-transform:uppercase;
+  padding:8px 4px 4px;
+}
+
+/* ── НАСТРОЙКИ ── */
+#settings-overlay {
+  position:absolute; inset:0; z-index:100;
+  background:rgba(2,0,0,0.97);
+  display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+#settings-overlay.open { transform:translateY(0); }
+.settings-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:40px 22px 18px;
+  border-bottom:1px solid rgba(120,15,15,0.3);
+}
+.settings-title-block { display:flex; flex-direction:column; gap:6px; }
+.settings-sup { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.7); text-transform:uppercase; }
+.settings-title { font-family:'Russo One',sans-serif; font-size:22px; letter-spacing:6px; color:rgba(230,210,200,0.9); }
+.settings-close { width:38px; height:38px; border-radius:50%; background:rgba(15,4,4,0.9); border:1px solid rgba(120,15,15,0.5); color:rgba(192,0,10,0.8); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.18s; }
+.settings-close:active { background:rgba(192,0,10,0.3); }
+.settings-body { flex:1; overflow-y:auto; padding:28px 22px; display:flex; flex-direction:column; gap:28px; }
+.setting-group { display:flex; flex-direction:column; gap:12px; }
+.setting-label { display:flex; justify-content:space-between; align-items:center; }
+.setting-name { font-size:9px; letter-spacing:4px; color:rgba(175,140,120,0.7); text-transform:uppercase; }
+.setting-value { font-size:11px; letter-spacing:2px; color:rgba(192,0,10,0.9); font-family:'Russo One',sans-serif; }
+.setting-desc { font-size:10px; letter-spacing:1px; color:rgba(100,75,65,0.6); line-height:1.5; margin-top:-4px; }
+input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:2px; border-radius:1px; background:rgba(60,15,15,0.8); outline:none; cursor:pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background:rgba(192,0,10,1); box-shadow:0 0 10px rgba(192,0,10,0.6); cursor:pointer; transition:box-shadow 0.18s; }
+input[type=range]:active::-webkit-slider-thumb { box-shadow:0 0 18px rgba(192,0,10,0.9); }
+input[type=range]::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:rgba(192,0,10,1); border:none; box-shadow:0 0 10px rgba(192,0,10,0.6); cursor:pointer; }
+.slider-marks { display:flex; justify-content:space-between; margin-top:4px; }
+.slider-marks span { font-size:8px; letter-spacing:2px; color:rgba(80,35,35,0.6); text-transform:uppercase; }
+.settings-divider { height:1px; background:linear-gradient(to right,transparent,rgba(100,15,15,0.3),transparent); }
+.settings-footer { padding:0 22px 44px; display:flex; flex-direction:column; gap:10px; }
+.settings-btn { width:100%; padding:14px; cursor:pointer; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:4px; text-transform:uppercase; transition:all 0.18s; border:none; }
+.settings-btn.accent { background:rgba(192,0,10,0.15); border:1px solid rgba(192,0,10,0.5); color:rgba(192,0,10,0.9); }
+.settings-btn.accent:active { background:rgba(192,0,10,0.35); }
+.settings-btn.ghost { background:transparent; border:1px solid rgba(80,30,30,0.4); color:rgba(120,85,75,0.7); }
+.settings-btn.ghost:active { border-color:rgba(192,0,10,0.4); color:rgba(192,0,10,0.7); }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="trans"></div>
+  <div id="toast"></div>
+  <div id="bg"></div>
+
+  <div id="header"></div>
+
+  <div id="menu">
+    <button class="btn primary" onclick="startGame()">
+      <div class="btn-panel">
+        <div class="btn-rivet tl"></div>
+        <div class="btn-rivet tr"></div>
+        <div class="btn-rivet bl"></div>
+        <div class="btn-rivet br"></div>
+        <span class="btn-text">Начать игру</span>
+      </div>
+    </button>
+
+    <button class="btn" onclick="continueGame()">
+      <div class="btn-panel">
+        <div class="btn-rivet tl"></div>
+        <div class="btn-rivet tr"></div>
+        <div class="btn-rivet bl"></div>
+        <div class="btn-rivet br"></div>
+        <span class="btn-text">Продолжить</span>
+      </div>
+    </button>
+
+    <button class="btn" onclick="openSettings()">
+      <div class="btn-panel">
+        <div class="btn-rivet tl"></div>
+        <div class="btn-rivet tr"></div>
+        <div class="btn-rivet bl"></div>
+        <div class="btn-rivet br"></div>
+        <span class="btn-text">Настройки</span>
+      </div>
+    </button>
+
+    <button class="btn" id="ach-menu-btn" onclick="openAchievements()">
+      <div class="btn-panel">
+        <div class="btn-rivet tl"></div>
+        <div class="btn-rivet tr"></div>
+        <div class="btn-rivet bl"></div>
+        <div class="btn-rivet br"></div>
+        <span class="btn-text">Достижения <span id="ach-count-badge" style="font-size:11px;opacity:0.6;letter-spacing:2px;"></span></span>
+      </div>
+    </button>
+
+    <button class="btn muted" onclick="showToast('Закройте вкладку')">
+      <div class="btn-panel">
+        <div class="btn-rivet tl"></div>
+        <div class="btn-rivet tr"></div>
+        <div class="btn-rivet bl"></div>
+        <div class="btn-rivet br"></div>
+        <span class="btn-text">Выход</span>
+      </div>
+    </button>
+  </div>
+
+  <div id="ver">ВЕРСИЯ 3 · Глава I</div>
+
+  <!-- ДОСТИЖЕНИЯ -->
+  <div id="ach-overlay">
+    <div class="ach-header">
+      <div class="ach-title-block">
+        <div class="ach-sup">Журнал бункера</div>
+        <div class="ach-title">ДОСТИЖЕНИЯ</div>
+      </div>
+      <button class="settings-close" onclick="closeAchievements()">✕</button>
+    </div>
+    <div class="ach-progress-bar-wrap">
+      <div class="ach-progress-meta">
+        <span class="ach-progress-label">Прогресс</span>
+        <span class="ach-progress-count" id="ach-prog-count">0 / 6</span>
+      </div>
+      <div class="ach-progress-track"><div class="ach-progress-fill" id="ach-prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="ach-body" id="ach-body"></div>
+  </div>
+
+  <!-- НАСТРОЙКИ -->
+  <div id="settings-overlay">
+    <div class="settings-header">
+      <div class="settings-title-block">
+        <div class="settings-sup">Конфигурация</div>
+        <div class="settings-title">НАСТРОЙКИ</div>
+      </div>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="setting-group">
+        <div class="setting-label">
+          <span class="setting-name">Громкость голоса</span>
+          <span class="setting-value" id="vol-val">100%</span>
+        </div>
+        <div class="setting-desc">Уровень громкости речевого сопровождения</div>
+        <input type="range" id="vol-slider" min="0" max="100" value="100" oninput="updateSetting('volume', this.value)">
+        <div class="slider-marks"><span>Выкл</span><span>Тихо</span><span>Громко</span></div>
+      </div>
+      <div class="settings-divider"></div>
+      <div class="setting-group">
+        <div class="setting-label">
+          <span class="setting-name">Скорость речи</span>
+          <span class="setting-value" id="rate-val">Норма</span>
+        </div>
+        <div class="setting-desc">Темп произношения текста диктором</div>
+        <input type="range" id="rate-slider" min="0" max="100" value="50" oninput="updateSetting('rate', this.value)">
+        <div class="slider-marks"><span>Медленно</span><span>Норма</span><span>Быстро</span></div>
+      </div>
+      <div class="settings-divider"></div>
+      <div class="setting-group">
+        <div class="setting-label">
+          <span class="setting-name">Тембр голоса</span>
+          <span class="setting-value" id="pitch-val">Норма</span>
+        </div>
+        <div class="setting-desc">Высота голоса диктора</div>
+        <input type="range" id="pitch-slider" min="0" max="100" value="50" oninput="updateSetting('pitch', this.value)">
+        <div class="slider-marks"><span>Низкий</span><span>Норма</span><span>Высокий</span></div>
+      </div>
+    </div>
+    <div class="settings-footer">
+      <button class="settings-btn accent" onclick="previewVoice()">Прослушать голос ▸</button>
+      <button class="settings-btn ghost" onclick="resetSettings()">Сбросить к умолчаниям</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showToast(msg, ms=1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+function fade(cb) {
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { cb(); setTimeout(() => t.classList.remove('on'), 80); }, 400);
+}
+function startGame() { fade(() => { window.location.href = 'chapter1/scene1.html'; }); }
+function continueGame() {
+  const s = localStorage.getItem('perimetr_save');
+  if (s) { fade(() => { window.location.href = JSON.parse(s).url; }); }
+  else showToast('Нет сохранений');
+}
+const DEFAULTS = { volume:1.0, rate:0.87, pitch:0.88 };
+function loadSettings() {
+  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { ...DEFAULTS }; }
+}
+function saveSettings(s) { localStorage.setItem('perimetr_settings', JSON.stringify(s)); }
+function rateLabel(r) {
+  if (r <= 0.65) return 'Медленно';
+  if (r <= 0.80) return 'Тихо';
+  if (r <= 1.00) return 'Норма';
+  if (r <= 1.20) return 'Быстро';
+  return 'Очень быстро';
+}
+function pitchLabel(p) {
+  if (p <= 0.65) return 'Низкий';
+  if (p <= 0.85) return 'Пониженный';
+  if (p <= 1.05) return 'Норма';
+  if (p <= 1.25) return 'Повышенный';
+  return 'Высокий';
+}
+function syncSliders() {
+  const s = loadSettings();
+  document.getElementById('vol-slider').value = Math.round(s.volume * 100);
+  document.getElementById('rate-slider').value = Math.round(((s.rate - 0.5) / 1.0) * 100);
+  document.getElementById('pitch-slider').value = Math.round(((s.pitch - 0.5) / 1.0) * 100);
+  document.getElementById('vol-val').textContent = Math.round(s.volume * 100) + '%';
+  document.getElementById('rate-val').textContent = rateLabel(s.rate);
+  document.getElementById('pitch-val').textContent = pitchLabel(s.pitch);
+}
+function updateSetting(key, sliderVal) {
+  const s = loadSettings(); const v = parseInt(sliderVal);
+  if (key === 'volume') { s.volume = v / 100; document.getElementById('vol-val').textContent = v + '%'; }
+  else if (key === 'rate') { s.rate = parseFloat((0.5 + (v/100)*1.0).toFixed(2)); document.getElementById('rate-val').textContent = rateLabel(s.rate); }
+  else if (key === 'pitch') { s.pitch = parseFloat((0.5 + (v/100)*1.0).toFixed(2)); document.getElementById('pitch-val').textContent = pitchLabel(s.pitch); }
+  saveSettings(s);
+}
+function resetSettings() { saveSettings({...DEFAULTS}); syncSliders(); showToast('Сброшено'); }
+function previewVoice() {
+  const synth = window.speechSynthesis;
+  if (!synth) { showToast('Голос недоступен'); return; }
+  synth.cancel();
+  const s = loadSettings();
+  const u = new SpeechSynthesisUtterance('Периметр. Уральский бункер. Сектор семь.');
+  u.lang='ru-RU'; u.rate=s.rate; u.pitch=s.pitch; u.volume=s.volume;
+  const rv = synth.getVoices().find(v => v.lang.startsWith('ru'));
+  if (rv) u.voice = rv;
+  synth.speak(u);
+}
+function openSettings() { syncSliders(); document.getElementById('settings-overlay').classList.add('open'); }
+function closeSettings() { document.getElementById('settings-overlay').classList.remove('open'); if (window.speechSynthesis) window.speechSynthesis.cancel(); }
+if (window.speechSynthesis) window.speechSynthesis.addEventListener('voiceschanged', () => window.speechSynthesis.getVoices());
+
+// ── ДОСТИЖЕНИЯ ──
+const ACHIEVEMENTS_DEF = [
+  { id:'first_step',     name:'Первый шаг',         desc:'Вы вошли в коридор бункера',           icon:'▶', rarity:'common',   chapter:'Глава I' },
+  { id:'sector_7',       name:'Сектор 7',            desc:'Вы достигли кабинета командования',    icon:'⬡', rarity:'common',   chapter:'Глава I' },
+  { id:'chapter_1',      name:'Периметр держится',   desc:'Первая глава пройдена',                icon:'◆', rarity:'uncommon', chapter:'Глава I' },
+  { id:'silent_officer', name:'Дисциплина',          desc:'Приняли приказ без лишних вопросов',   icon:'✦', rarity:'uncommon', chapter:'Глава I' },
+  { id:'skeptic',        name:'Сомнение',            desc:'Усомнились в версии генерала',         icon:'◎', rarity:'uncommon', chapter:'Глава I' },
+  { id:'detective',      name:'Детектив',            desc:'Запросили личное дело Климова',        icon:'◈', rarity:'rare',     chapter:'Глава I' },
+];
+const RARITY_LABEL = { common:'Обычное', uncommon:'Необычное', rare:'Редкое' };
+
+function getUnlocked() {
+  try { return JSON.parse(localStorage.getItem('perimetr_achievements') || '[]'); } catch { return []; }
+}
+
+function updateAchBadge() {
+  const n = getUnlocked().length;
+  const el = document.getElementById('ach-count-badge');
+  if (el) el.textContent = n > 0 ? n + ' / ' + ACHIEVEMENTS_DEF.length : '';
+}
+
+function renderAchievements() {
+  const unlocked = getUnlocked();
+  const total = ACHIEVEMENTS_DEF.length;
+  const count = unlocked.length;
+  document.getElementById('ach-prog-count').textContent = count + ' / ' + total;
+  document.getElementById('ach-prog-fill').style.width = Math.round((count / total) * 100) + '%';
+
+  const body = document.getElementById('ach-body');
+  body.innerHTML = '';
+
+  let lastChapter = null;
+  ACHIEVEMENTS_DEF.forEach(a => {
+    if (a.chapter !== lastChapter) {
+      lastChapter = a.chapter;
+      const sep = document.createElement('div');
+      sep.className = 'ach-chapter-sep';
+      sep.textContent = '── ' + a.chapter + ' ──';
+      body.appendChild(sep);
+    }
+    const isOn = unlocked.includes(a.id);
+    const card = document.createElement('div');
+    card.className = 'ach-card' + (isOn ? ' unlocked' : '') + (a.rarity === 'rare' ? ' rare' : '');
+    card.innerHTML =
+      '<div class="ach-icon-wrap">' + a.icon + '</div>' +
+      '<div class="ach-card-info">' +
+        '<div class="ach-card-name">' + (isOn ? a.name : '???') + '</div>' +
+        '<div class="ach-card-desc">' + (isOn ? a.desc : 'Продолжайте игру') + '</div>' +
+        '<div class="ach-card-meta"><span class="ach-rarity">' + RARITY_LABEL[a.rarity] + '</span></div>' +
+      '</div>' +
+      '<div class="ach-lock">' + (isOn ? '' : '🔒') + '</div>';
+    body.appendChild(card);
+  });
+}
+
+function openAchievements() {
+  renderAchievements();
+  document.getElementById('ach-overlay').classList.add('open');
+}
+function closeAchievements() { document.getElementById('ach-overlay').classList.remove('open'); }
+
+// Обновить значок при загрузке
+updateAchBadge();
+</script>
+</body>
+</html>
