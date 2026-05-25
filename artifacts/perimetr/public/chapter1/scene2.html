@@ -12,24 +12,54 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
 #video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .grad-top { position:absolute; top:0; left:0; right:0; height:30%; background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent); pointer-events:none; }
 .grad-bot { position:absolute; bottom:0; left:0; right:0; height:55%; background:linear-gradient(to top,rgba(0,0,0,0.97),rgba(0,0,0,0) 70%); pointer-events:none; }
+
 #status { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; padding:14px 16px 0; z-index:10; font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.75); text-transform:uppercase; }
 #location { position:absolute; top:34px; left:16px; z-index:10; font-size:8px; letter-spacing:3px; color:rgba(200,200,200,0.4); text-transform:uppercase; display:flex; align-items:center; gap:6px; }
 #location::before { content:''; width:12px; height:1px; background:rgba(192,0,10,0.8); box-shadow:0 0 4px rgba(192,0,10,0.5); }
+
+/* ── ПАРАНОЙЯ HUD ── */
+#paranoia-hud {
+  position:absolute; top:54px; left:0; right:0; z-index:10;
+  padding:4px 16px 0;
+  opacity:0; transition:opacity 1.2s;
+}
+#paranoia-hud.visible { opacity:1; }
+.par-row { display:flex; align-items:center; gap:8px; }
+.par-label { font-size:7px; letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
+.par-label.ctrl { color:rgba(100,140,100,0.55); }
+.par-label.prn  { color:rgba(192,0,10,0.55); }
+.par-track { flex:1; height:1px; background:rgba(40,15,10,0.7); position:relative; }
+.par-fill  { position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(to right,rgba(80,40,20,0.5),rgba(192,0,10,0.85)); transition:width 1.4s ease; }
+#paranoia-hud.danger .par-fill { box-shadow:0 0 6px rgba(192,0,10,0.6); }
+
 #door-sign { position:absolute; top:38%; left:50%; transform:translateX(-50%); z-index:10; text-align:center; background:rgba(160,130,60,0.1); border:1px solid rgba(180,150,80,0.45); padding:8px 18px; opacity:0; transition:opacity 0.8s; }
 #door-sign.show { opacity:1; }
 #door-sign span { display:block; font-family:'Russo One',sans-serif; font-size:11px; letter-spacing:2px; color:rgba(215,185,105,0.9); text-shadow:0 0 10px rgba(215,185,105,0.4); }
+
 #voice-btn { position:absolute; top:10px; right:14px; z-index:20; background:rgba(10,3,3,0.7); border:1px solid rgba(140,0,0,0.3); color:rgba(192,0,10,0.8); font-size:16px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
 #voice-btn:active { background:rgba(192,0,10,0.2); }
 #voice-btn.muted { color:rgba(100,100,100,0.5); border-color:rgba(80,80,80,0.2); }
+
 #subtitle { position:absolute; bottom:110px; left:14px; right:14px; text-align:center; z-index:10; opacity:0; transition:opacity 0.6s; }
 #subtitle.show { opacity:1; }
 .sub-speaker { font-size:8px; letter-spacing:4px; color:rgba(192,0,10,0.9); text-transform:uppercase; margin-bottom:7px; }
 .sub-text { font-size:15px; line-height:1.7; font-weight:300; color:rgba(235,222,210,0.97); text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1); }
+
+/* Параноидный внутренний монолог */
+#paranoid-thought {
+  position:absolute; bottom:110px; left:14px; right:14px; text-align:center; z-index:11;
+  opacity:0; transition:opacity 0.8s; pointer-events:none;
+}
+#paranoid-thought.show { opacity:1; }
+.thought-speaker { font-size:7px; letter-spacing:5px; color:rgba(140,0,10,0.6); text-transform:uppercase; margin-bottom:6px; font-style:italic; }
+.thought-text { font-size:13px; line-height:1.75; font-weight:300; font-style:italic; color:rgba(180,140,130,0.75); text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1); }
+
 #action { position:absolute; bottom:20px; left:14px; right:14px; z-index:20; opacity:0; transform:translateY(8px); transition:opacity 0.5s,transform 0.5s; pointer-events:none; }
 #action.show { opacity:1; transform:translateY(0); pointer-events:all; }
 .act-btn { width:100%; background:rgba(5,1,1,0.87); border:1px solid rgba(192,0,10,0.4); color:rgba(215,195,185,0.88); font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:4px; text-transform:uppercase; padding:14px 18px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:all 0.18s; }
 .act-btn::before { content:'▸'; color:rgba(192,0,10,0.9); font-size:10px; }
 .act-btn:active { background:rgba(60,5,5,0.92); border-color:rgba(192,0,10,0.8); color:#fff; box-shadow:0 0 20px rgba(192,0,10,0.3); }
+
 #ver { position:absolute; bottom:6px; right:12px; z-index:10; font-size:7px; letter-spacing:2px; color:rgba(70,30,30,0.4); text-transform:uppercase; }
 #trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
 #trans.on { opacity:1; pointer-events:all; }
@@ -41,23 +71,46 @@ html, body { width:100%; height:100%; background:#000; overflow:hidden; }
   <video id="video" muted loop playsinline webkit-playsinline src="/Video/ch1_s2.mp4" preload="auto"></video>
   <div class="grad-top"></div>
   <div class="grad-bot"></div>
+
   <div id="status"><span>Артур Северов</span><span>Офицер · Сектор 7</span></div>
   <div id="location">Кабинет командования · −3</div>
+
+  <!-- ПАРАНОЙЯ HUD -->
+  <div id="paranoia-hud">
+    <div class="par-row">
+      <span class="par-label ctrl">Контроль</span>
+      <div class="par-track"><div class="par-fill" id="par-fill"></div></div>
+      <span class="par-label prn">Паранойя</span>
+    </div>
+  </div>
+
   <div id="door-sign"><span>ГЕНЕРАЛ</span><span>МОРОЗОВ В.А.</span></div>
   <button id="voice-btn" onclick="toggleVoice()">🔊</button>
+
   <div id="subtitle">
     <div class="sub-speaker">Повествование</div>
     <div class="sub-text">Дверь тяжёлая. За ней — тишина. Северов остановился. Из-под двери пробивался красный свет. Генерал всегда работал при обычном освещении.</div>
   </div>
+
+  <!-- Показывается только при высокой паранойе -->
+  <div id="paranoid-thought">
+    <div class="thought-speaker">Северов · Внутренний голос</div>
+    <div class="thought-text">Красный свет не включают для работы. Его включают, когда не хотят, чтобы видели лица.</div>
+  </div>
+
   <div id="action">
     <button class="act-btn" onclick="goNext()">Войти в кабинет</button>
   </div>
-  <div id="ver">С2·В1</div>
+  <div id="ver">С2·В4</div>
 </div>
+
+<script src="/js/game-state.js"></script>
 <script src="/js/achievements.js"></script>
 <script>
 localStorage.setItem('perimetr_save', JSON.stringify({ url: 'chapter1/scene2.html' }));
+
 const NARRATION = 'Дверь тяжёлая. За ней — тишина. Северов остановился. Из-под двери пробивался красный свет. Генерал всегда работал при обычном освещении.';
+const PARANOID_THOUGHT = 'Красный свет не включают для работы. Его включают, когда не хотят, чтобы видели лица.';
 let voiceOn = true;
 const synth = window.speechSynthesis;
 if (synth) synth.addEventListener('voiceschanged', () => synth.getVoices());
@@ -66,7 +119,6 @@ function getSettings() {
   try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
   catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
 }
-
 function speak(text) {
   if (!voiceOn || !synth) return;
   synth.cancel();
@@ -77,7 +129,6 @@ function speak(text) {
   if (rv) u.voice = rv;
   synth.speak(u);
 }
-
 function toggleVoice() {
   voiceOn = !voiceOn;
   const btn = document.getElementById('voice-btn');
@@ -89,10 +140,29 @@ function toggleVoice() {
 const vid = document.getElementById('video');
 vid.addEventListener('canplay', () => { vid.play().catch(() => {}); }, { once: true });
 vid.load();
+
+/* Паранойя: +15 за красный свет под дверью генерала */
+const currentParanoia = perimetr_visitScene('s2', 15);
+perimetr_updateParanoiaHUD(currentParanoia);
+
 setTimeout(() => { document.getElementById('door-sign').classList.add('show'); }, 400);
 setTimeout(() => { document.getElementById('subtitle').classList.add('show'); speak(NARRATION); }, 800);
-setTimeout(() => { document.getElementById('action').classList.add('show'); }, 2800);
-setTimeout(() => { perimetr_unlockAndNotify('sector_7'); }, 1200);
+
+/* При высокой паранойе — показать внутренний голос */
+if (currentParanoia >= 15) {
+  setTimeout(() => {
+    document.getElementById('subtitle').classList.remove('show');
+    setTimeout(() => {
+      document.getElementById('paranoid-thought').classList.add('show');
+      speak(PARANOID_THOUGHT);
+    }, 600);
+  }, 3800);
+}
+
+setTimeout(() => {
+  document.getElementById('action').classList.add('show');
+  perimetr_unlockAndNotify('sector_7');
+}, 2800);
 
 function goNext() {
   if (synth) synth.cancel();
