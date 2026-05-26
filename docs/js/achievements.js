@@ -12,7 +12,9 @@ var ACHIEVEMENTS_DEF = [
   { id:'time_out',      name:'Время истекло',         desc:'Позволили таймеру решить за вас',           icon:'⧖', rarity:'uncommon', chapter:'Глава I', hidden:true },
   { id:'inscription_b7',name:'КЛ-07 ЖИВ?',           desc:'Нашли надпись в Коридоре Б-7',              icon:'◉', rarity:'rare',     chapter:'Глава I', hidden:true },
   { id:'paranoid_mind', name:'Паранойя',              desc:'Уровень паранойи превысил 50 единиц',       icon:'◫', rarity:'rare',     chapter:'Глава I', hidden:true },
-  { id:'silence_x3',    name:'Обет молчания',         desc:'Промолчали трижды подряд',                  icon:'◯', rarity:'rare',     chapter:'Глава I', hidden:true }
+  { id:'silence_x3',    name:'Обет молчания',         desc:'Промолчали трижды подряд',                  icon:'◯', rarity:'rare',     chapter:'Глава I', hidden:true },
+  /* ── Глава I · Сцена 4+ ── */
+  { id:'observer',      name:'Наблюдательный',        desc:'Нашли схему вентиляции в комнате Климова',  icon:'◐', rarity:'uncommon', chapter:'Глава I', hidden:false }
 ];
 
 function perimetr_getUnlocked() {
