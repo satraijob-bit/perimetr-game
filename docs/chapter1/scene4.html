@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ПЕРИМЕТР · Сцена 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+#game { width:100%; max-width:430px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; font-family:'Oswald',sans-serif; }
+#video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.grad-top { position:absolute; top:0; left:0; right:0; height:30%; background:linear-gradient(to bottom,rgba(0,0,0,0.85),transparent); pointer-events:none; }
+.grad-bot { position:absolute; bottom:0; left:0; right:0; height:62%; background:linear-gradient(to top,rgba(0,0,0,0.98),rgba(0,0,0,0) 68%); pointer-events:none; }
+
+/* ── STATUS ── */
+#status { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; padding:14px 16px 0; z-index:10; font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.75); text-transform:uppercase; }
+#location { position:absolute; top:34px; left:16px; z-index:10; font-size:8px; letter-spacing:3px; color:rgba(200,200,200,0.4); text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+#location::before { content:''; width:12px; height:1px; background:rgba(192,0,10,0.8); box-shadow:0 0 4px rgba(192,0,10,0.5); }
+
+/* ── ПАРАНОЙЯ HUD ── */
+#paranoia-hud { position:absolute; top:54px; left:0; right:0; z-index:10; padding:4px 16px 0; opacity:0; transition:opacity 1.2s; }
+#paranoia-hud.visible { opacity:1; }
+.par-row { display:flex; align-items:center; gap:8px; }
+.par-label { font-size:7px; letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
+.par-label.ctrl { color:rgba(100,140,100,0.55); }
+.par-label.prn  { color:rgba(192,0,10,0.55); }
+.par-track { flex:1; height:1px; background:rgba(40,15,10,0.7); position:relative; }
+.par-fill  { position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(to right,rgba(80,40,20,0.5),rgba(192,0,10,0.85)); transition:width 1.4s ease; }
+#paranoia-hud.danger .par-fill { box-shadow:0 0 6px rgba(192,0,10,0.6); }
+
+/* ── УЛИКИ — иконки в углу ── */
+#clue-indicator {
+  position:absolute; top:68px; right:14px; z-index:10;
+  display:flex; gap:5px; opacity:0; transition:opacity 0.6s;
+}
+#clue-indicator.show { opacity:1; }
+.clue-dot { width:5px; height:5px; border-radius:50%; background:rgba(192,0,10,0.2); border:1px solid rgba(192,0,10,0.3); transition:all 0.4s; }
+.clue-dot.found { background:rgba(192,0,10,0.85); box-shadow:0 0 6px rgba(192,0,10,0.5); }
+
+#voice-btn { position:absolute; top:10px; right:14px; z-index:20; background:rgba(10,3,3,0.7); border:1px solid rgba(140,0,0,0.3); color:rgba(192,0,10,0.8); font-size:16px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+#voice-btn:active { background:rgba(192,0,10,0.2); }
+#voice-btn.muted { color:rgba(100,100,100,0.5); border-color:rgba(80,80,80,0.2); }
+
+/* ── СУБТИТРЫ ── */
+#subtitle { position:absolute; bottom:240px; left:14px; right:14px; text-align:center; z-index:10; opacity:0; transition:opacity 0.6s; }
+#subtitle.show { opacity:1; }
+.sub-speaker { font-size:8px; letter-spacing:4px; color:rgba(192,0,10,0.9); text-transform:uppercase; margin-bottom:7px; }
+.sub-text { font-size:15px; line-height:1.7; font-weight:300; color:rgba(235,222,210,0.97); letter-spacing:0.3px; text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1),0 0 40px rgba(0,0,0,0.8); }
+
+/* Параноидная мысль (при paranoia > 15) */
+#paranoid-thought { position:absolute; bottom:240px; left:14px; right:14px; text-align:center; z-index:11; opacity:0; transition:opacity 0.8s; pointer-events:none; }
+#paranoid-thought.show { opacity:1; }
+.thought-speaker { font-size:7px; letter-spacing:5px; color:rgba(140,0,10,0.6); text-transform:uppercase; margin-bottom:6px; font-style:italic; }
+.thought-text { font-size:13px; line-height:1.75; font-weight:300; font-style:italic; color:rgba(180,140,130,0.75); text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1); }
+
+/* ── ВАРИАНТЫ ── */
+#choices { position:absolute; bottom:18px; left:12px; right:12px; z-index:20; display:flex; flex-direction:column; gap:6px; opacity:0; transform:translateY(10px); transition:opacity 0.5s,transform 0.5s; pointer-events:none; }
+#choices.show { opacity:1; transform:translateY(0); pointer-events:all; }
+.choice-btn { width:100%; background:rgba(5,1,1,0.87); border:1px solid rgba(192,0,10,0.35); color:rgba(215,195,185,0.88); font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:11px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:all 0.18s; text-align:left; line-height:1.4; }
+.choice-btn::before { content:'▸'; color:rgba(192,0,10,0.9); font-size:9px; flex-shrink:0; }
+.choice-btn.chosen { border-color:rgba(192,0,10,0.9); background:rgba(50,5,5,0.92); color:#fff; }
+.choice-btn.faded  { opacity:0.2; pointer-events:none; }
+.choice-btn.silence-btn { border-color:rgba(60,60,60,0.4); color:rgba(160,150,140,0.6); }
+.choice-btn.silence-btn::before { color:rgba(100,100,100,0.5); }
+
+/* ── РЕЗУЛЬТАТ ── */
+#result { position:absolute; inset:0; background:rgba(4,1,1,0.95); z-index:40; display:none; flex-direction:column; justify-content:center; padding:28px 22px; gap:16px; }
+#result.show { display:flex; animation:fadeIn 0.4s ease; }
+.res-label { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.9); text-transform:uppercase; }
+.res-line { width:36px; height:1px; background:rgba(192,0,10,0.8); }
+.res-txt { font-size:15px; line-height:1.85; font-weight:300; font-style:italic; color:rgba(225,210,200,0.95); }
+.res-paranoid { font-size:12px; line-height:1.8; font-style:italic; color:rgba(140,100,90,0.7); margin-top:4px; padding-top:12px; border-top:1px solid rgba(80,20,10,0.3); display:none; }
+.res-paranoid.show { display:block; }
+
+/* Метка улики */
+.res-clue { display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(192,0,10,0.06); border:1px solid rgba(192,0,10,0.25); margin-top:2px; }
+.res-clue-icon { font-size:12px; color:rgba(192,0,10,0.8); }
+.res-clue-text { font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.7); text-transform:uppercase; }
+
+#continue-btn { margin-top:6px; background:transparent; border:1px solid rgba(192,0,10,0.5); color:rgba(192,0,10,0.9); font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:5px; padding:13px; cursor:pointer; text-transform:uppercase; }
+#continue-btn:active { background:rgba(192,0,10,0.8); color:#000; }
+
+#ver { position:absolute; bottom:6px; right:12px; z-index:10; font-size:7px; letter-spacing:2px; color:rgba(70,30,30,0.4); text-transform:uppercase; }
+#trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
+#trans.on { opacity:1; pointer-events:all; }
+@keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="trans"></div>
+  <video id="video" muted loop playsinline webkit-playsinline src="../Video/ch1_s4.mp4" preload="auto"></video>
+  <div class="grad-top"></div>
+  <div class="grad-bot"></div>
+
+  <div id="status"><span>Артур Северов</span><span>Сл. I · Комната 14</span></div>
+  <div id="location">Комната Климова · Уровень −3</div>
+
+  <!-- ПАРАНОЙЯ HUD -->
+  <div id="paranoia-hud">
+    <div class="par-row">
+      <span class="par-label ctrl">Контроль</span>
+      <div class="par-track"><div class="par-fill" id="par-fill"></div></div>
+      <span class="par-label prn">Паранойя</span>
+    </div>
+  </div>
+
+  <!-- ИНДИКАТОР УЛИК (3 возможных) -->
+  <div id="clue-indicator">
+    <div class="clue-dot" id="clue-1"></div>
+    <div class="clue-dot" id="clue-2"></div>
+    <div class="clue-dot" id="clue-3"></div>
+  </div>
+
+  <button id="voice-btn" onclick="toggleVoice()" title="Озвучка">🔊</button>
+
+  <div id="subtitle">
+    <div class="sub-speaker">Повествование</div>
+    <div class="sub-text">Комната Климова. Восемь лет. Ни фотографий, ни книг, ни следа человека. Кровать застелена по уставу. Слишком по уставу. Так не живут — так готовятся уйти.</div>
+  </div>
+
+  <!-- Параноидная мысль при высокой паранойе -->
+  <div id="paranoid-thought">
+    <div class="thought-speaker">Северов · Внутренний голос</div>
+    <div class="thought-text">Восемь лет — и ни одной личной вещи. Человек готовился к этому дню. Может быть, годами.</div>
+  </div>
+
+  <!-- ВАРИАНТЫ ОСМОТРА -->
+  <div id="choices">
+    <button class="choice-btn" onclick="choose('A')">Осмотреть стены</button>
+    <button class="choice-btn" onclick="choose('B')">Проверить стол и ящики</button>
+    <button class="choice-btn" onclick="choose('C')">Доложить что чисто</button>
+    <button class="choice-btn silence-btn" onclick="choose('D')">Остановиться и просто смотреть</button>
+  </div>
+
+  <!-- РЕЗУЛЬТАТ ОСМОТРА -->
+  <div id="result">
+    <div class="res-label">Осмотр</div>
+    <div class="res-line"></div>
+    <div class="res-txt" id="res-txt"></div>
+    <div class="res-clue" id="res-clue" style="display:none;">
+      <span class="res-clue-icon">◈</span>
+      <span class="res-clue-text" id="res-clue-text"></span>
+    </div>
+    <div class="res-paranoid" id="res-paranoid"></div>
+    <button id="continue-btn" onclick="goNext()">Продолжить ▸</button>
+  </div>
+
+  <div id="ver">С4·В1</div>
+</div>
+
+<script src="../js/game-state.js"></script>
+<script src="../js/achievements.js"></script>
+<script>
+localStorage.setItem('perimetr_save', JSON.stringify({ url: 'chapter1/scene4.html' }));
+
+const NARRATION = 'Комната Климова. Восемь лет. Ни фотографий, ни книг, ни следа человека. Кровать застелена по уставу. Слишком по уставу. Так не живут — так готовятся уйти.';
+const PARANOID_NARRATION = 'Восемь лет — и ни одной личной вещи. Человек готовился к этому дню. Может быть, годами.';
+
+/* Эффект бабочки: выбор в сцене 3 влияет на текст сцены 4 */
+const prevChoice = perimetr_getChoice('s3');
+
+const CHOICES = {
+  A: {
+    result: 'За изголовьем кровати — царапины. Не случайные. Схема вентиляционных шахт уровня −4. Климов знал куда идти. И давно готовился.',
+    paranoidResult: 'Схема нанесена ногтем — вдавлена в штукатурку. Работа недель, не дней. Он планировал это задолго до исчезновения.',
+    clue: 'УЛИКА: Схема вентиляции уровня −4',
+    clueId: 'vent_map',
+    paranoia: 2,
+    cluesFound: true,
+    trustDelta: 0,
+    stat: 'ПАРАНОЙЯ: +2\nУЛИКА НАЙДЕНА'
+  },
+  B: {
+    result: 'На дне пустого ящика — клочок бумаги. Цифры. Внутренние координаты бункера. Уровень −4, сектор 9. Написано карандашом, потом стёрто. Почти.',
+    paranoidResult: prevChoice === 'C' ? 'Координаты совпадают с тем, что Северов видел в архиве генерала. Климов знал то, чего знать не должен был.' : 'Координаты. Уровень −4, сектор 9. Там нет ничего официального.',
+    clue: 'УЛИКА: Координаты −4 · Сектор 9',
+    clueId: 'sector9_coords',
+    paranoia: 1,
+    cluesFound: true,
+    trustDelta: 0,
+    stat: 'ПАРАНОЙЯ: +1\nУЛИКА НАЙДЕНА'
+  },
+  C: {
+    result: 'Северов вышел. Ничего подозрительного. Или просто не захотел искать — иногда незнание безопаснее. Генерал будет доволен.',
+    paranoidResult: null,
+    clue: null,
+    clueId: null,
+    paranoia: 0,
+    cluesFound: false,
+    trustDelta: +1,
+    stat: 'ДОВЕРИЕ ГЕНЕРАЛА: +1\nИНФОРМАЦИЯ: МИНИМУМ'
+  },
+  D: {
+    result: 'Северов не тронул ничего. Встал у входа и просто смотрел. Чистота комнаты давила — не аккуратность, а пустота. Что-то здесь вырвано с корнем.',
+    paranoidResult: 'Пустота бывает двух видов: когда нечего хранить — и когда нельзя. Это был второй вид.',
+    clue: null,
+    clueId: null,
+    paranoia: 2,
+    cluesFound: false,
+    trustDelta: 0,
+    stat: 'ПАРАНОЙЯ: +2\nВНУТРЕННИЙ ГОЛОС'
+  }
+};
+
+let picked = null;
+let voiceOn = true;
+const synth = window.speechSynthesis;
+if (synth) synth.addEventListener('voiceschanged', () => synth.getVoices());
+
+function getSettings() {
+  try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
+}
+function speak(text) {
+  if (!voiceOn || !synth) return;
+  synth.cancel();
+  const cfg = getSettings();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ru-RU'; u.rate = cfg.rate; u.pitch = cfg.pitch; u.volume = cfg.volume;
+  const rv = synth.getVoices().find(v => v.lang.startsWith('ru'));
+  if (rv) u.voice = rv;
+  synth.speak(u);
+}
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  const btn = document.getElementById('voice-btn');
+  btn.textContent = voiceOn ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !voiceOn);
+  if (!voiceOn) synth.cancel(); else speak(NARRATION);
+}
+
+/* ── ВЫБОР ── */
+function choose(key) {
+  if (picked) return;
+  picked = key;
+  if (synth) synth.cancel();
+
+  const d = CHOICES[key];
+  const state = perimetr_getState();
+  const isParanoid = state.paranoia >= 15;
+
+  /* Подсветка кнопок */
+  document.querySelectorAll('.choice-btn').forEach((b, i) => {
+    b.classList.add(['A','B','C','D'][i] === key ? 'chosen' : 'faded');
+  });
+
+  /* Обновляем состояние */
+  perimetr_recordChoice('s4', key);
+  if (d.paranoia > 0) perimetr_addParanoia(d.paranoia);
+  if (d.clueId) perimetr_addClue(d.clueId);
+  if (d.trustDelta !== 0) perimetr_changeTrust(d.trustDelta);
+
+  /* Достижение — Наблюдательный (выбор A) */
+  if (key === 'A') {
+    setTimeout(() => { perimetr_unlockAndNotify('observer'); }, 700);
+    /* Подсветить индикатор улик */
+    setTimeout(() => {
+      document.getElementById('clue-1').classList.add('found');
+    }, 900);
+  }
+  if (key === 'B') {
+    setTimeout(() => {
+      document.getElementById('clue-2').classList.add('found');
+    }, 900);
+  }
+
+  /* Показать результат */
+  setTimeout(() => {
+    document.getElementById('res-txt').textContent = d.result;
+
+    /* Улика */
+    if (d.clue) {
+      const clueEl = document.getElementById('res-clue');
+      document.getElementById('res-clue-text').textContent = d.clue;
+      clueEl.style.display = 'flex';
+    }
+
+    /* Параноидный текст */
+    if (isParanoid && d.paranoidResult) {
+      const rp = document.getElementById('res-paranoid');
+      rp.textContent = '⚠ ' + d.paranoidResult;
+      rp.classList.add('show');
+    }
+
+    document.getElementById('result').classList.add('show');
+    speak(d.result);
+  }, 450);
+}
+
+/* ── ПЕРЕХОД ── */
+function goNext() {
+  if (synth) synth.cancel();
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { window.location.href = 'scene5.html'; }, 400);
+}
+
+/* ── ИНИЦИАЛИЗАЦИЯ ── */
+const vid = document.getElementById('video');
+vid.addEventListener('canplay', () => { vid.play().catch(() => {}); }, { once: true });
+vid.load();
+
+const currentParanoia = perimetr_getState().paranoia;
+perimetr_updateParanoiaHUD(currentParanoia);
+
+/* Показываем HUD улик */
+setTimeout(() => {
+  document.getElementById('clue-indicator').classList.add('show');
+}, 800);
+
+/* Субтитр + озвучка */
+setTimeout(() => {
+  document.getElementById('subtitle').classList.add('show');
+  speak(NARRATION);
+}, 700);
+
+/* При высокой паранойе — внутренний голос */
+if (currentParanoia >= 15) {
+  setTimeout(() => {
+    document.getElementById('subtitle').classList.remove('show');
+    setTimeout(() => {
+      document.getElementById('paranoid-thought').classList.add('show');
+      speak(PARANOID_NARRATION);
+    }, 600);
+  }, 3800);
+}
+
+/* Варианты выбора */
+setTimeout(() => {
+  document.getElementById('choices').classList.add('show');
+}, 2800);
+</script>
+</body>
+</html>
