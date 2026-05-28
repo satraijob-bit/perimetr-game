@@ -89,7 +89,26 @@ function perimetr_getChoice(scene) {
 
 /* Сброс при новой игре */
 function perimetr_resetState() {
-  perimetr_saveState({ paranoia: 0, choices: {}, silenceCount: 0, visited: [], clues: [], trust_general: 0 });
+  perimetr_saveState({ paranoia: 0, choices: {}, silenceCount: 0, visited: [], clues: [], trust_general: 0, vars: {} });
+}
+
+/* Восстановить состояние из объекта (чекпоинт) */
+function perimetr_setState(newState) {
+  perimetr_saveState(newState);
+}
+
+/* Записать произвольную переменную эффекта бабочки */
+function perimetr_setVar(key, value) {
+  var s = perimetr_getState();
+  if (!s.vars) s.vars = {};
+  s.vars[key] = value;
+  perimetr_saveState(s);
+}
+
+/* Прочитать произвольную переменную */
+function perimetr_getVar(key) {
+  var s = perimetr_getState();
+  return (s.vars || {})[key];
 }
 
 /* Обновить HUD паранойи */
