@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ПЕРИМЕТР · Сцена 5</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; background:#000; overflow:hidden; }
+#game { width:100%; max-width:430px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; font-family:'Oswald',sans-serif; }
+#video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.grad-top { position:absolute; top:0; left:0; right:0; height:30%; background:linear-gradient(to bottom,rgba(0,0,0,0.85),transparent); pointer-events:none; }
+.grad-bot { position:absolute; bottom:0; left:0; right:0; height:62%; background:linear-gradient(to top,rgba(0,0,0,0.98),rgba(0,0,0,0) 68%); pointer-events:none; }
+
+/* ── STATUS ── */
+#status { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; padding:14px 16px 0; z-index:10; font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.75); text-transform:uppercase; }
+#location { position:absolute; top:34px; left:16px; z-index:10; font-size:8px; letter-spacing:3px; color:rgba(200,200,200,0.4); text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+#location::before { content:''; width:12px; height:1px; background:rgba(192,0,10,0.8); box-shadow:0 0 4px rgba(192,0,10,0.5); }
+
+/* ── ПАРАНОЙЯ HUD ── */
+#paranoia-hud { position:absolute; top:54px; left:0; right:0; z-index:10; padding:4px 16px 0; opacity:0; transition:opacity 1.2s; }
+#paranoia-hud.visible { opacity:1; }
+.par-row { display:flex; align-items:center; gap:8px; }
+.par-label { font-size:7px; letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
+.par-label.ctrl { color:rgba(100,140,100,0.55); }
+.par-label.prn  { color:rgba(192,0,10,0.55); }
+.par-track { flex:1; height:1px; background:rgba(40,15,10,0.7); position:relative; }
+.par-fill  { position:absolute; left:0; top:0; bottom:0; width:0%; background:linear-gradient(to right,rgba(80,40,20,0.5),rgba(192,0,10,0.85)); transition:width 1.4s ease; }
+#paranoia-hud.danger .par-fill { box-shadow:0 0 6px rgba(192,0,10,0.6); }
+
+/* ── УЛИКИ ── */
+#clue-indicator { position:absolute; top:68px; right:14px; z-index:10; display:flex; gap:5px; opacity:0; transition:opacity 0.6s; }
+#clue-indicator.show { opacity:1; }
+.clue-dot { width:5px; height:5px; border-radius:50%; background:rgba(192,0,10,0.2); border:1px solid rgba(192,0,10,0.3); transition:all 0.4s; }
+.clue-dot.found { background:rgba(192,0,10,0.85); box-shadow:0 0 6px rgba(192,0,10,0.5); }
+
+#voice-btn { position:absolute; top:10px; right:14px; z-index:20; background:rgba(10,3,3,0.7); border:1px solid rgba(140,0,0,0.3); color:rgba(192,0,10,0.8); font-size:16px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+#voice-btn:active { background:rgba(192,0,10,0.2); }
+#voice-btn.muted { color:rgba(100,100,100,0.5); border-color:rgba(80,80,80,0.2); }
+
+/* ── СУБТИТРЫ ── */
+#subtitle { position:absolute; bottom:240px; left:14px; right:14px; text-align:center; z-index:10; opacity:0; transition:opacity 0.6s; }
+#subtitle.show { opacity:1; }
+.sub-speaker { font-size:8px; letter-spacing:4px; color:rgba(192,0,10,0.9); text-transform:uppercase; margin-bottom:7px; }
+.sub-text { font-size:15px; line-height:1.7; font-weight:300; color:rgba(235,222,210,0.97); letter-spacing:0.3px; text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1),0 0 40px rgba(0,0,0,0.8); }
+
+/* Параноидная мысль */
+#paranoid-thought { position:absolute; bottom:240px; left:14px; right:14px; text-align:center; z-index:11; opacity:0; transition:opacity 0.8s; pointer-events:none; }
+#paranoid-thought.show { opacity:1; }
+.thought-speaker { font-size:7px; letter-spacing:5px; color:rgba(140,0,10,0.6); text-transform:uppercase; margin-bottom:6px; font-style:italic; }
+.thought-text { font-size:13px; line-height:1.75; font-weight:300; font-style:italic; color:rgba(180,140,130,0.75); text-shadow:0 0 20px rgba(0,0,0,1),0 2px 8px rgba(0,0,0,1); }
+
+/* ── ВАРИАНТЫ ── */
+#choices { position:absolute; bottom:18px; left:12px; right:12px; z-index:20; display:flex; flex-direction:column; gap:6px; opacity:0; transform:translateY(10px); transition:opacity 0.5s,transform 0.5s; pointer-events:none; }
+#choices.show { opacity:1; transform:translateY(0); pointer-events:all; }
+.choice-btn { width:100%; background:rgba(5,1,1,0.87); border:1px solid rgba(192,0,10,0.35); color:rgba(215,195,185,0.88); font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:11px 14px; cursor:pointer; display:flex; align-items:center; gap:10px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:all 0.18s; text-align:left; line-height:1.4; }
+.choice-btn::before { content:'▸'; color:rgba(192,0,10,0.9); font-size:9px; flex-shrink:0; }
+.choice-btn.chosen { border-color:rgba(192,0,10,0.9); background:rgba(50,5,5,0.92); color:#fff; }
+.choice-btn.faded  { opacity:0.2; pointer-events:none; }
+.choice-btn.silence-btn { border-color:rgba(60,60,60,0.4); color:rgba(160,150,140,0.6); }
+.choice-btn.silence-btn::before { color:rgba(100,100,100,0.5); }
+
+/* ── ФАЗА 2: ТАЙМЕР СМЕРТИ ── */
+#phase2 { position:absolute; inset:0; background:rgba(2,0,0,0.92); z-index:35; display:none; flex-direction:column; justify-content:flex-end; padding:24px 18px 28px; gap:14px; }
+#phase2.show { display:flex; animation:fadeIn 0.5s ease; }
+
+#vent-warning { font-size:14px; line-height:1.75; font-weight:300; color:rgba(235,215,205,0.95); text-align:center; text-shadow:0 0 20px rgba(0,0,0,1); padding-bottom:12px; border-bottom:1px solid rgba(192,0,10,0.2); }
+#vent-warning em { font-style:italic; color:rgba(192,0,10,0.9); }
+
+/* Таймер */
+#timer-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+#timer-label { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.6); text-transform:uppercase; }
+#timer-bar { width:100%; height:3px; background:rgba(40,10,10,0.8); border:1px solid rgba(192,0,10,0.2); border-radius:2px; overflow:hidden; }
+#timer-fill { height:100%; width:100%; background:rgba(192,0,10,0.9); transform-origin:left; transition:width linear; box-shadow:0 0 8px rgba(192,0,10,0.6); }
+#timer-count { font-family:'Russo One',sans-serif; font-size:28px; color:rgba(192,0,10,0.9); letter-spacing:4px; text-shadow:0 0 20px rgba(192,0,10,0.4); }
+#timer-fill.urgent { background:rgba(255,20,20,1); box-shadow:0 0 16px rgba(255,0,0,0.8); animation:pulse-red 0.3s infinite; }
+
+#phase2-choices { display:flex; flex-direction:column; gap:6px; }
+
+/* ── РЕЗУЛЬТАТ / СМЕРТЬ ── */
+#result { position:absolute; inset:0; background:rgba(4,1,1,0.97); z-index:40; display:none; flex-direction:column; justify-content:center; padding:28px 22px; gap:16px; }
+#result.show { display:flex; animation:fadeIn 0.4s ease; }
+.res-label { font-size:8px; letter-spacing:5px; color:rgba(192,0,10,0.9); text-transform:uppercase; }
+.res-line { width:36px; height:1px; background:rgba(192,0,10,0.8); }
+.res-txt { font-size:15px; line-height:1.85; font-weight:300; font-style:italic; color:rgba(225,210,200,0.95); }
+.res-paranoid { font-size:12px; line-height:1.8; font-style:italic; color:rgba(140,100,90,0.7); margin-top:4px; padding-top:12px; border-top:1px solid rgba(80,20,10,0.3); display:none; }
+.res-paranoid.show { display:block; }
+.res-clue { display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(192,0,10,0.06); border:1px solid rgba(192,0,10,0.25); margin-top:2px; }
+.res-clue-icon { font-size:12px; color:rgba(192,0,10,0.8); }
+.res-clue-text { font-size:9px; letter-spacing:3px; color:rgba(192,0,10,0.7); text-transform:uppercase; }
+
+#continue-btn { margin-top:6px; background:transparent; border:1px solid rgba(192,0,10,0.5); color:rgba(192,0,10,0.9); font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:5px; padding:13px; cursor:pointer; text-transform:uppercase; }
+#continue-btn:active { background:rgba(192,0,10,0.8); color:#000; }
+
+/* ── ЭКРАН СМЕРТИ ── */
+#death-screen { position:absolute; inset:0; background:#000; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:32px; }
+#death-screen.show { display:flex; animation:fadeIn 0.8s ease; }
+.death-skull { font-size:48px; opacity:0.7; }
+.death-label { font-size:8px; letter-spacing:8px; color:rgba(192,0,10,0.5); text-transform:uppercase; }
+.death-line { width:40px; height:1px; background:rgba(192,0,10,0.5); }
+.death-title { font-family:'Russo One',sans-serif; font-size:20px; letter-spacing:6px; color:rgba(192,0,10,0.9); text-transform:uppercase; text-align:center; }
+.death-subtitle { font-size:13px; line-height:1.8; font-weight:300; font-style:italic; color:rgba(180,160,150,0.7); text-align:center; margin-top:-8px; }
+.death-reason { font-size:10px; letter-spacing:3px; color:rgba(120,80,70,0.7); text-transform:uppercase; text-align:center; padding:10px 16px; border:1px solid rgba(80,20,10,0.4); }
+.death-btn { width:100%; background:transparent; border:1px solid rgba(192,0,10,0.4); color:rgba(192,0,10,0.8); font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:4px; padding:14px; cursor:pointer; text-transform:uppercase; margin-top:8px; transition:all 0.2s; }
+.death-btn:active, .death-btn:hover { background:rgba(192,0,10,0.15); }
+.death-btn.secondary { border-color:rgba(80,60,60,0.4); color:rgba(120,100,90,0.6); font-size:10px; letter-spacing:3px; padding:11px; }
+
+#ver { position:absolute; bottom:6px; right:12px; z-index:10; font-size:7px; letter-spacing:2px; color:rgba(70,30,30,0.4); text-transform:uppercase; }
+#trans { position:absolute; inset:0; background:#000; z-index:60; opacity:0; pointer-events:none; transition:opacity 0.4s; }
+#trans.on { opacity:1; pointer-events:all; }
+
+/* Эффект вибрации вентиляции */
+@keyframes shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-2px);} 40%{transform:translateX(2px);} 60%{transform:translateX(-1px);} 80%{transform:translateX(1px);} }
+@keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
+@keyframes pulse-red { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+#game.shake { animation:shake 0.3s ease; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="trans"></div>
+  <video id="video" muted loop playsinline webkit-playsinline src="../Video/ch1_s5.mp4" preload="auto"></video>
+  <div class="grad-top"></div>
+  <div class="grad-bot"></div>
+
+  <div id="status"><span>Артур Северов</span><span>Сл. I · Коридор В-3</span></div>
+  <div id="location">Коридор В-3 · Уровень −2</div>
+
+  <!-- ПАРАНОЙЯ HUD -->
+  <div id="paranoia-hud">
+    <div class="par-row">
+      <span class="par-label ctrl">Контроль</span>
+      <div class="par-track"><div class="par-fill" id="par-fill"></div></div>
+      <span class="par-label prn">Паранойя</span>
+    </div>
+  </div>
+
+  <!-- ИНДИКАТОР УЛИК (2 возможных) -->
+  <div id="clue-indicator">
+    <div class="clue-dot" id="clue-1"></div>
+    <div class="clue-dot" id="clue-2"></div>
+  </div>
+
+  <button id="voice-btn" onclick="toggleVoice()" title="Озвучка">🔊</button>
+
+  <!-- СУБТИТР НАРРАТОРА -->
+  <div id="subtitle">
+    <div class="sub-speaker">Повествование</div>
+    <div class="sub-text" id="sub-text">Вальцев. Коллега Климова. Он знал — Северов видел это сразу. Вопрос был только в том, успеет ли заговорить.</div>
+  </div>
+
+  <!-- Параноидная мысль -->
+  <div id="paranoid-thought">
+    <div class="thought-speaker">Северов · Внутренний голос</div>
+    <div class="thought-text">Страх на его лице — не перед Северовым. Перед чем-то за спиной. Они оба стояли между двумя опасностями.</div>
+  </div>
+
+  <!-- ФАЗА 1: ВЫБОРЫ РАЗГОВОРА -->
+  <div id="choices">
+    <button class="choice-btn" onclick="choosePhase1('A')">Надавить</button>
+    <button class="choice-btn" onclick="choosePhase1('B')">Войти в доверие</button>
+    <button class="choice-btn silence-btn" onclick="choosePhase1('C')">Молча наблюдать</button>
+  </div>
+
+  <!-- ФАЗА 2: ВЕНТИЛЯЦИЯ — ТАЙМЕР СМЕРТИ -->
+  <div id="phase2">
+    <div id="vent-warning">
+      <em>Из вентиляции что-то смотрит.</em><br>
+      <span style="font-size:12px;color:rgba(200,180,170,0.7);letter-spacing:1px;">У тебя 5 секунд.</span>
+    </div>
+    <div id="timer-wrap">
+      <div id="timer-label">Осталось</div>
+      <div id="timer-bar"><div id="timer-fill"></div></div>
+      <div id="timer-count">5</div>
+    </div>
+    <div id="phase2-choices">
+      <button class="choice-btn" onclick="choosePhase2('A')">Схватить Вальцева и бежать</button>
+      <button class="choice-btn" onclick="choosePhase2('B')">Прыжок в боковой коридор</button>
+    </div>
+  </div>
+
+  <!-- РЕЗУЛЬТАТ ФАЗЫ 1 (промежуточный) -->
+  <div id="result">
+    <div class="res-label" id="res-label">Вальцев</div>
+    <div class="res-line"></div>
+    <div class="res-txt" id="res-txt"></div>
+    <div class="res-clue" id="res-clue" style="display:none;">
+      <span class="res-clue-icon">◈</span>
+      <span class="res-clue-text" id="res-clue-text"></span>
+    </div>
+    <div class="res-paranoid" id="res-paranoid"></div>
+    <button id="continue-btn" onclick="startPhase2()">Продолжить ▸</button>
+  </div>
+
+  <!-- ЭКРАН СМЕРТИ -->
+  <div id="death-screen">
+    <div class="death-skull">💀</div>
+    <div class="death-label">Конец</div>
+    <div class="death-line"></div>
+    <div class="death-title">Северов мёртв</div>
+    <div class="death-subtitle">Он не успел среагировать.<br>Коридор В-3 поглотил его.</div>
+    <div class="death-reason">СМЕРТЬ 1 · ВЕНТИЛЯЦИЯ · УРОВЕНЬ −2</div>
+    <button class="death-btn" onclick="restartChapter()">Начать главу заново ▸</button>
+    <button class="death-btn secondary" onclick="retryFromCheckpoint()">Вернуться к моменту выбора</button>
+  </div>
+
+  <div id="ver">С5·В1</div>
+</div>
+
+<script src="../js/game-state.js"></script>
+<script src="../js/achievements.js"></script>
+<script>
+localStorage.setItem('perimetr_save', JSON.stringify({ url: 'chapter1/scene5.html' }));
+
+const NARRATION = 'Вальцев. Коллега Климова. Он знал — Северов видел это сразу. Вопрос был только в том, успеет ли заговорить.';
+const PARANOID_NARRATION = 'Страх на его лице — не перед Северовым. Перед чем-то за спиной. Они оба стояли между двумя опасностями.';
+
+/* Эффект бабочки */
+const s3Choice = perimetr_getChoice('s3');
+const s4Choice = perimetr_getChoice('s4');
+
+const PHASE1_DATA = {
+  A: {
+    text: '«Я ничего не—» Голос сорвался. Северов надавил сильнее. Вальцев сломался за двадцать секунд: Климов слышал голоса из вентиляции. Говорил — там кто-то живёт. На −5.',
+    paranoidText: 'Сломался слишком быстро. Либо не умел держаться — либо хотел, чтобы его сломали.',
+    clue: 'УЛИКА: Голоса из вентиляции · Уровень −5',
+    clueId: 'vent_voices',
+    paranoia: 2, cluesFound: 1, trustDelta: -1,
+    approach: 'pressure'
+  },
+  B: {
+    text: s3Choice === 'C'
+      ? '«Климов последние недели плохо спал» — Вальцев говорил тихо. — «Голоса из вентиляции. Ночью. Я не верил. Теперь сам слышу.» Пауза. «Он искал вход на −5. Говорил там была другая группа. До нас.» Его голос снизился: «Страницы в досье — их вырвали. Климов знал об этом.»'
+      : '«Климов последние недели плохо спал» — Вальцев говорил тихо. — «Голоса из вентиляции. Ночью. Я не верил. Теперь сам слышу.» Пауза. «Он искал вход на −5. Говорил там была другая группа. До нас.»',
+    paranoidText: 'Другая группа. До нас. Значит — бункер существовал раньше. И что-то там осталось.',
+    clue: 'УЛИКА: Другая группа · Вход на −5',
+    clueId: 'group_before',
+    paranoia: 1, cluesFound: 2, trustDelta: 2,
+    approach: 'trust'
+  },
+  C: {
+    text: 'Вальцев не выдержал тишины первым. «Климов не сбежал. Он искал кое-что. И нашёл.» Больше не сказал ни слова. Но этого было достаточно.',
+    paranoidText: 'Нашёл. Прошедшее время. Значит — это случилось до исчезновения. Не после.',
+    clue: 'УЛИКА: Климов нашёл то, что искал',
+    clueId: 'klimov_found',
+    paranoia: 3, cluesFound: 1, trustDelta: 1,
+    approach: 'silence'
+  }
+};
+
+const PHASE2_DATA = {
+  A: {
+    text: 'Они успели. Решётка упала за спиной. В коридоре — темнота и звук когтей по металлу. Вальцев дышал часто, но был жив.',
+    waltsevAlive: true,
+    paranoia: 2, cluesFound: 0
+  },
+  B: {
+    text: 'Северов нырнул в проём. Вальцев — нет. Крик. Потом тишина. Когда Северов обернулся — коридор был пуст.',
+    waltsevAlive: false,
+    paranoia: 3, cluesFound: 1,
+    clue: 'УЛИКА: Видел существо из вентиляции',
+    clueId: 'creature_seen'
+  }
+};
+
+let phase1Done = false;
+let phase2Done = false;
+let phase1Choice = null;
+let timerInterval = null;
+let timerDeadline = null;
+let timeLeft = 5;
+let voiceOn = true;
+const synth = window.speechSynthesis;
+if (synth) synth.addEventListener('voiceschanged', () => synth.getVoices());
+
+/* ── ОЗВУЧКА ── */
+function getSettings() {
+  try { return { volume:1.0, rate:0.87, pitch:0.88, ...JSON.parse(localStorage.getItem('perimetr_settings')||'{}') }; }
+  catch { return { volume:1.0, rate:0.87, pitch:0.88 }; }
+}
+function speak(text) {
+  if (!voiceOn || !synth) return;
+  synth.cancel();
+  const cfg = getSettings();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ru-RU'; u.rate = cfg.rate; u.pitch = cfg.pitch; u.volume = cfg.volume;
+  const rv = synth.getVoices().find(v => v.lang.startsWith('ru'));
+  if (rv) u.voice = rv;
+  synth.speak(u);
+}
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  const btn = document.getElementById('voice-btn');
+  btn.textContent = voiceOn ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !voiceOn);
+  if (!voiceOn) synth.cancel(); else speak(NARRATION);
+}
+
+/* ── ФАЗА 1: РАЗГОВОР ── */
+function choosePhase1(key) {
+  if (phase1Done) return;
+  phase1Done = true;
+  phase1Choice = key;
+  if (synth) synth.cancel();
+
+  const d = PHASE1_DATA[key];
+  const state = perimetr_getState();
+  const isParanoid = state.paranoia >= 15;
+
+  document.querySelectorAll('#choices .choice-btn').forEach((b, i) => {
+    b.classList.add(['A','B','C'][i] === key ? 'chosen' : 'faded');
+  });
+
+  perimetr_recordChoice('s5', key);
+  perimetr_setVar('ch1_s5_approach', d.approach);
+  if (d.paranoia > 0) perimetr_addParanoia(d.paranoia);
+  if (d.clueId) perimetr_addClue(d.clueId);
+  if (d.trustDelta !== 0) perimetr_changeTrust(d.trustDelta);
+  perimetr_setVar('trust_waltsev', (perimetr_getVar('trust_waltsev') || 0) + d.trustDelta);
+
+  /* Dot-индикаторы улик */
+  if (key === 'B') {
+    setTimeout(() => {
+      document.getElementById('clue-1').classList.add('found');
+      document.getElementById('clue-2').classList.add('found');
+    }, 900);
+  } else if (d.clueId) {
+    setTimeout(() => document.getElementById('clue-1').classList.add('found'), 900);
+  }
+
+  setTimeout(() => {
+    const resLabel = document.getElementById('res-label');
+    const resTxt = document.getElementById('res-txt');
+    const resParanoid = document.getElementById('res-paranoid');
+    const resClue = document.getElementById('res-clue');
+
+    resLabel.textContent = key === 'A' ? 'Давление' : key === 'B' ? 'Доверие' : 'Тишина';
+    resTxt.textContent = d.text;
+
+    if (d.clue) {
+      document.getElementById('res-clue-text').textContent = d.clue;
+      resClue.style.display = 'flex';
+    }
+
+    if (isParanoid && d.paranoidText) {
+      resParanoid.textContent = '⚠ ' + d.paranoidText;
+      resParanoid.classList.add('show');
+    }
+
+    /* Эффект бабочки: если s3=C + trust достаточно → показываем доп. строку */
+    if (key === 'B' && s3Choice === 'C') {
+      const butterfly = document.createElement('div');
+      butterfly.style.cssText = 'font-size:9px;letter-spacing:3px;color:rgba(140,100,80,0.65);text-transform:uppercase;margin-top:8px;padding-top:8px;border-top:1px solid rgba(80,30,10,0.3);';
+      butterfly.textContent = '↺ Эффект: личное дело Климова · с.3';
+      document.getElementById('result').insertBefore(butterfly, document.getElementById('continue-btn'));
+    }
+
+    document.getElementById('choices').classList.remove('show');
+    document.getElementById('result').classList.add('show');
+    speak(d.text);
+  }, 450);
+}
+
+/* ── СОХРАНИТЬ ЧЕКПОИНТ ПЕРЕД ФАЗОЙ 2 ── */
+function saveCheckpoint() {
+  const state = perimetr_getState();
+  localStorage.setItem('perimetr_checkpoint_s5', JSON.stringify({
+    state,
+    phase1Choice,
+    url: 'chapter1/scene5.html'
+  }));
+}
+
+/* ── ФАЗА 2: ВЕНТИЛЯЦИЯ ── */
+function startPhase2() {
+  if (synth) synth.cancel();
+  saveCheckpoint();
+
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('subtitle').classList.remove('show');
+
+  const phase2El = document.getElementById('phase2');
+  phase2El.classList.add('show');
+
+  /* Вибрация экрана */
+  const game = document.getElementById('game');
+  setTimeout(() => { game.classList.add('shake'); setTimeout(() => game.classList.remove('shake'), 320); }, 400);
+  setTimeout(() => { game.classList.add('shake'); setTimeout(() => game.classList.remove('shake'), 320); }, 1200);
+
+  startDeathTimer();
+}
+
+function startDeathTimer() {
+  timeLeft = 5;
+  const fill = document.getElementById('timer-fill');
+  const count = document.getElementById('timer-count');
+  fill.style.width = '100%';
+  fill.style.transition = 'none';
+
+  requestAnimationFrame(() => {
+    fill.style.transition = `width ${timeLeft}s linear`;
+    fill.style.width = '0%';
+  });
+
+  timerDeadline = Date.now() + timeLeft * 1000;
+
+  timerInterval = setInterval(() => {
+    const remaining = Math.ceil((timerDeadline - Date.now()) / 1000);
+    if (remaining !== timeLeft) {
+      timeLeft = remaining;
+      count.textContent = remaining;
+
+      /* Срочность: последние 2 секунды */
+      if (remaining <= 2) {
+        fill.classList.add('urgent');
+        count.style.color = 'rgba(255,20,20,1)';
+        document.getElementById('game').classList.add('shake');
+        setTimeout(() => document.getElementById('game').classList.remove('shake'), 320);
+      }
+
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+        triggerDeath();
+      }
+    }
+  }, 100);
+
+  /* Точный fallback через setTimeout */
+  setTimeout(() => {
+    if (!phase2Done) {
+      clearInterval(timerInterval);
+      triggerDeath();
+    }
+  }, 5200);
+}
+
+/* ── ВЫБОР В ФАЗЕ 2 ── */
+function choosePhase2(key) {
+  if (phase2Done) return;
+  phase2Done = true;
+  clearInterval(timerInterval);
+  if (synth) synth.cancel();
+
+  const d = PHASE2_DATA[key];
+
+  document.querySelectorAll('#phase2-choices .choice-btn').forEach((b, i) => {
+    b.classList.add(['A','B'][i] === key ? 'chosen' : 'faded');
+  });
+
+  perimetr_setVar('waltsev_alive', d.waltsevAlive);
+  if (d.paranoia > 0) perimetr_addParanoia(d.paranoia);
+  if (d.clueId) perimetr_addClue(d.clueId);
+
+  if (!d.waltsevAlive) {
+    setTimeout(() => document.getElementById('clue-2').classList.add('found'), 600);
+  }
+
+  setTimeout(() => {
+    document.getElementById('phase2').classList.remove('show');
+
+    const resLabel = document.getElementById('res-label');
+    const resTxt = document.getElementById('res-txt');
+    const resClue = document.getElementById('res-clue');
+    const continueBtn = document.getElementById('continue-btn');
+
+    resLabel.textContent = d.waltsevAlive ? 'Вместе' : 'Один';
+    resTxt.textContent = d.text;
+    document.getElementById('res-paranoid').classList.remove('show');
+
+    if (d.clue) {
+      document.getElementById('res-clue-text').textContent = d.clue;
+      resClue.style.display = 'flex';
+    } else {
+      resClue.style.display = 'none';
+    }
+
+    continueBtn.textContent = 'Сцена 6 ▸';
+    continueBtn.onclick = goNext;
+    document.getElementById('result').classList.add('show');
+    speak(d.text);
+  }, 600);
+}
+
+/* ── СМЕРТЬ ── */
+function triggerDeath() {
+  if (phase2Done) return;
+  phase2Done = true;
+  if (synth) synth.cancel();
+
+  perimetr_addParanoia(0); /* не меняем — смерть */
+
+  document.getElementById('phase2').classList.remove('show');
+  setTimeout(() => {
+    document.getElementById('death-screen').classList.add('show');
+  }, 300);
+}
+
+function restartChapter() {
+  perimetr_resetState();
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { window.location.href = 'scene1.html'; }, 450);
+}
+
+function retryFromCheckpoint() {
+  /* Восстановить состояние до фазы 2 */
+  try {
+    const cp = JSON.parse(localStorage.getItem('perimetr_checkpoint_s5') || 'null');
+    if (cp && cp.state) {
+      perimetr_setState(cp.state);
+    }
+  } catch(e) {}
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { window.location.reload(); }, 450);
+}
+
+/* ── ПЕРЕХОД ── */
+function goNext() {
+  if (synth) synth.cancel();
+  const t = document.getElementById('trans');
+  t.classList.add('on');
+  setTimeout(() => { window.location.href = 'scene6.html'; }, 400);
+}
+
+/* ── ИНИЦИАЛИЗАЦИЯ ── */
+const vid = document.getElementById('video');
+vid.addEventListener('canplay', () => { vid.play().catch(() => {}); }, { once: true });
+vid.load();
+
+const currentParanoia = perimetr_getState().paranoia;
+perimetr_updateParanoiaHUD(currentParanoia);
+
+setTimeout(() => document.getElementById('clue-indicator').classList.add('show'), 800);
+
+setTimeout(() => {
+  document.getElementById('subtitle').classList.add('show');
+  speak(NARRATION);
+}, 700);
+
+if (currentParanoia >= 15) {
+  setTimeout(() => {
+    document.getElementById('subtitle').classList.remove('show');
+    setTimeout(() => {
+      document.getElementById('paranoid-thought').classList.add('show');
+      speak(PARANOID_NARRATION);
+    }, 600);
+  }, 3800);
+}
+
+setTimeout(() => {
+  document.getElementById('choices').classList.add('show');
+}, 2800);
+</script>
+</body>
+</html>
